@@ -1,15 +1,25 @@
 <template>
-  <main class="min-h-screen bg-white px-6 py-12 text-slate-950">
-    <section class="mx-auto max-w-5xl">
-      <p class="text-sm font-medium uppercase tracking-wide text-slate-500">
-        Job Tracker
-      </p>
-      <h1 class="mt-4 text-4xl font-semibold tracking-tight">
+  <main>
+    <UContainer class="py-16 sm:py-20">
+      <section class="max-w-3xl">
+        <UBadge color="neutral" variant="subtle">
+          MVP scaffold
+        </UBadge>
+        <h1 class="mt-5 text-4xl font-semibold tracking-tight text-highlighted sm:text-5xl">
         Track applications, interviews, and follow-ups.
-      </h1>
-      <p class="mt-4 max-w-2xl text-lg text-slate-600">
-        Nuxt scaffold is ready. The product UI, data model, and API will be added in the next implementation steps.
-      </p>
-    </section>
+        </h1>
+        <p class="mt-5 max-w-2xl text-lg text-muted">
+          The Nuxt UI and Pinia base is ready. Next we will add Prisma, SQLite, and the JobApplication model.
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <UButton to="/jobs" icon="i-lucide-arrow-right" trailing>
+            Open applications
+          </UButton>
+          <UButton to="/jobs" color="neutral" variant="outline" icon="i-lucide-list-checks">
+            View MVP surface
+          </UButton>
+        </div>
+      </section>
+    </UContainer>
   </main>
 </template>

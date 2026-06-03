@@ -7,7 +7,9 @@ const navigation = useNavigationStore()
     <header class="border-b border-default bg-default/95 backdrop-blur">
       <UContainer class="flex h-16 items-center justify-between gap-6">
         <NuxtLink to="/" class="flex items-center gap-3">
-          <span class="flex size-9 items-center justify-center rounded-md bg-primary text-sm font-semibold text-inverted">
+          <span
+            class="flex size-9 items-center justify-center rounded-md bg-primary text-sm font-semibold text-inverted"
+          >
             JT
           </span>
           <span class="text-sm font-semibold text-highlighted">
@@ -15,7 +17,10 @@ const navigation = useNavigationStore()
           </span>
         </NuxtLink>
 
-        <nav class="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
+        <nav
+          class="hidden items-center gap-1 md:flex"
+          aria-label="Primary navigation"
+        >
           <UButton
             v-for="item in navigation.items"
             :key="item.to"

@@ -11,16 +11,19 @@ The project serves both as a practical tool during a job search and as a portfol
 ## Technology Stack
 
 ### Frontend
+
 - Nuxt 4
 - TypeScript
 - Pinia
 - Nuxt UI 4
 
 ### Backend
+
 - Nitro Server API (built into Nuxt)
 - Prisma ORM
 
 ### Database
+
 - SQLite (MVP)
 - PostgreSQL (future upgrade)
 
@@ -75,23 +78,27 @@ The project serves both as a practical tool during a job search and as a portfol
 ## MVP Features
 
 ### Job Management
+
 - Create application
 - Edit application
 - Delete application
 - View application details
 
 ### Tracking
+
 - Status management
 - Notes
 - Application date
 - Follow-up reminders
 
 ### Filtering
+
 - Filter by status
 - Filter by company
 - Search by keyword
 
 ### Statistics
+
 - Total applications
 - Interviews
 - Offers
@@ -133,18 +140,21 @@ prisma/
 ## Future Improvements
 
 ### AI Features
+
 - Vacancy analysis
 - Resume matching
 - Cover letter generation
 - Interview preparation tips
 
 ### Automation
+
 - Import vacancy from URL
 - Email tracking
 - Calendar integration
 - Recruiter contact management
 
 ### Analytics
+
 - Funnel visualization
 - Time-to-offer metrics
 - Salary analytics

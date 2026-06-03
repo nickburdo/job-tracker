@@ -37,6 +37,20 @@ Includes:
 - Add basic navigation.
 - Prepare the visual style for a work-focused dashboard/list UI.
 
+## 2.5 Code Quality Setup
+
+Estimate: 30-45 minutes
+
+Result: ESLint and Prettier are configured and runnable through npm scripts.
+
+Includes:
+
+- Install the official Nuxt ESLint integration.
+- Add Prettier for formatting.
+- Add `lint`, `lint:fix`, `format`, and `format:check` scripts.
+- Add project-level ESLint and Prettier config files.
+- Verify lint, format check, and build.
+
 ## 3. Prisma + SQLite
 
 Estimate: 45-75 minutes

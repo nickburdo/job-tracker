@@ -16,7 +16,7 @@ Build a personal job application tracker that is practical for daily job search 
 
 ## Implementation Shape
 
-- Use Nuxt 3, TypeScript, Pinia, Nuxt UI, Nitro server API, Prisma, and SQLite.
+- Use Nuxt 4, TypeScript, Pinia, Nuxt UI 4, Nitro server API, Prisma, and SQLite.
 - Core model remains `JobApplication` with company, position, vacancy URL, status, source, optional salary range/currency, location, remote type, notes, applied date, follow-up date, and timestamps.
 - Pages:
   - `/jobs`: main list, filters, search, stats summary.

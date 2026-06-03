@@ -11,10 +11,10 @@ The project serves both as a practical tool during a job search and as a portfol
 ## Technology Stack
 
 ### Frontend
-- Nuxt 3
+- Nuxt 4
 - TypeScript
 - Pinia
-- Nuxt UI
+- Nuxt UI 4
 
 ### Backend
 - Nitro Server API (built into Nuxt)
@@ -103,18 +103,22 @@ The project serves both as a practical tool during a job search and as a portfol
 ## Suggested Structure
 
 ```txt
-pages/
-  jobs/
-    index.vue
-    new.vue
-    [id].vue
-    [id]/edit.vue
+app/
+  pages/
+    jobs/
+      index.vue
+      new.vue
+      [id].vue
+      [id]/edit.vue
 
-components/
-  jobs/
-    JobCard.vue
-    JobForm.vue
-    JobStatusBadge.vue
+  components/
+    jobs/
+      JobCard.vue
+      JobForm.vue
+      JobStatusBadge.vue
+
+  layouts/
+    default.vue
 
 server/
   api/

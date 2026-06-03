@@ -14,7 +14,7 @@ Estimated total:
 
 Estimate: 30-45 minutes
 
-Result: Nuxt 3 + TypeScript project runs locally.
+Result: Nuxt 4 + TypeScript project runs locally.
 
 Includes:
 
@@ -31,9 +31,9 @@ Result: Nuxt UI, Pinia, and the base layout are connected.
 
 Includes:
 
-- Install Nuxt UI.
+- Install Nuxt UI 4.
 - Connect Pinia.
-- Add a shared app layout.
+- Add a shared app layout using the Nuxt 4 `app/` directory structure.
 - Add basic navigation.
 - Prepare the visual style for a work-focused dashboard/list UI.
 

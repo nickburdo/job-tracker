@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum JobApplicationStatus {
+  SAVED
+  APPLIED
+  SCREENING
+  TECHNICAL_INTERVIEW
+  FINAL_INTERVIEW
+  OFFER
+  REJECTED
+  ARCHIVED
+}
+
+model JobApplication {
+  id             String               @id @default(cuid())
+  company        String
+  position       String
+  vacancyUrl     String
+  status         JobApplicationStatus @default(SAVED)
+  source         String
+  salaryMin      Int?
+  salaryMax      Int?
+  currency       String?
+  location       String?
+  remoteType     String?
+  notes          String?
+  appliedAt      DateTime?
+  nextFollowUpAt DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([status])
+  @@index([company])
+  @@index([createdAt])
+}

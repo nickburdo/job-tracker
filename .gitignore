@@ -9,6 +9,13 @@ dist
 # Node dependencies
 node_modules
 
+# Prisma
+generated
+dev.db
+dev.db-journal
+prisma/dev.db
+prisma/dev.db-journal
+
 # Logs
 logs
 *.log

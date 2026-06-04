@@ -1,93 +1,93 @@
-import { JobApplicationStatus } from '../../generated/prisma/client'
+import { JobApplicationStatus } from '../../generated/prisma/client';
 
-const jobStatuses = new Set(Object.values(JobApplicationStatus))
+const jobStatuses = new Set(Object.values(JobApplicationStatus));
 
 type JobPayload = {
-  company?: unknown
-  position?: unknown
-  vacancyUrl?: unknown
-  status?: unknown
-  source?: unknown
-  salaryMin?: unknown
-  salaryMax?: unknown
-  currency?: unknown
-  location?: unknown
-  remoteType?: unknown
-  notes?: unknown
-  appliedAt?: unknown
-  nextFollowUpAt?: unknown
-}
+  company?: unknown;
+  position?: unknown;
+  vacancyUrl?: unknown;
+  status?: unknown;
+  source?: unknown;
+  salaryMin?: unknown;
+  salaryMax?: unknown;
+  currency?: unknown;
+  location?: unknown;
+  remoteType?: unknown;
+  notes?: unknown;
+  appliedAt?: unknown;
+  nextFollowUpAt?: unknown;
+};
 
 const requiredString = (value: unknown, field: string) => {
   if (typeof value !== 'string' || !value.trim()) {
     throw createError({
       statusCode: 400,
-      statusMessage: `${field} is required`
-    })
+      statusMessage: `${field} is required`,
+    });
   }
 
-  return value.trim()
-}
+  return value.trim();
+};
 
 const optionalString = (value: unknown) => {
   if (value === undefined || value === null || value === '') {
-    return null
+    return null;
   }
 
   if (typeof value !== 'string') {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Expected a string value'
-    })
+      statusMessage: 'Expected a string value',
+    });
   }
 
-  return value.trim()
-}
+  return value.trim();
+};
 
 const optionalNumber = (value: unknown, field: string) => {
   if (value === undefined || value === null || value === '') {
-    return null
+    return null;
   }
 
-  const numberValue = Number(value)
+  const numberValue = Number(value);
 
   if (!Number.isInteger(numberValue) || numberValue < 0) {
     throw createError({
       statusCode: 400,
-      statusMessage: `${field} must be a positive integer`
-    })
+      statusMessage: `${field} must be a positive integer`,
+    });
   }
 
-  return numberValue
-}
+  return numberValue;
+};
 
 const optionalDate = (value: unknown, field: string) => {
   if (value === undefined || value === null || value === '') {
-    return null
+    return null;
   }
 
   if (typeof value !== 'string') {
     throw createError({
       statusCode: 400,
-      statusMessage: `${field} must be an ISO date string`
-    })
+      statusMessage: `${field} must be an ISO date string`,
+    });
   }
 
-  const date = new Date(value)
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     throw createError({
       statusCode: 400,
-      statusMessage: `${field} must be a valid date`
-    })
+      statusMessage: `${field} must be a valid date`,
+    });
   }
 
-  return date
-}
+  return date;
+};
 
 const parseStatus = (value: unknown) => {
   if (value === undefined || value === null || value === '') {
-    return JobApplicationStatus.SAVED
+    return JobApplicationStatus.SAVED;
   }
 
   if (
@@ -96,12 +96,12 @@ const parseStatus = (value: unknown) => {
   ) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'status is invalid'
-    })
+      statusMessage: 'status is invalid',
+    });
   }
 
-  return value as JobApplicationStatus
-}
+  return value as JobApplicationStatus;
+};
 
 const parseOptionalStatus = (value: unknown) => {
   if (
@@ -110,25 +110,25 @@ const parseOptionalStatus = (value: unknown) => {
   ) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'status is invalid'
-    })
+      statusMessage: 'status is invalid',
+    });
   }
 
-  return value as JobApplicationStatus
-}
+  return value as JobApplicationStatus;
+};
 
 const hasField = (payload: JobPayload, field: keyof JobPayload) =>
-  Object.prototype.hasOwnProperty.call(payload, field)
+  Object.prototype.hasOwnProperty.call(payload, field);
 
 export const parseJobPayload = (payload: JobPayload) => {
-  const salaryMin = optionalNumber(payload.salaryMin, 'salaryMin')
-  const salaryMax = optionalNumber(payload.salaryMax, 'salaryMax')
+  const salaryMin = optionalNumber(payload.salaryMin, 'salaryMin');
+  const salaryMax = optionalNumber(payload.salaryMax, 'salaryMax');
 
   if (salaryMin !== null && salaryMax !== null && salaryMin > salaryMax) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'salaryMin cannot be greater than salaryMax'
-    })
+      statusMessage: 'salaryMin cannot be greater than salaryMax',
+    });
   }
 
   return {
@@ -144,39 +144,39 @@ export const parseJobPayload = (payload: JobPayload) => {
     remoteType: optionalString(payload.remoteType),
     notes: optionalString(payload.notes),
     appliedAt: optionalDate(payload.appliedAt, 'appliedAt'),
-    nextFollowUpAt: optionalDate(payload.nextFollowUpAt, 'nextFollowUpAt')
-  }
-}
+    nextFollowUpAt: optionalDate(payload.nextFollowUpAt, 'nextFollowUpAt'),
+  };
+};
 
 export const parseJobUpdatePayload = (payload: JobPayload) => {
-  const data: Partial<ReturnType<typeof parseJobPayload>> = {}
+  const data: Partial<ReturnType<typeof parseJobPayload>> = {};
 
   if (hasField(payload, 'company')) {
-    data.company = requiredString(payload.company, 'company')
+    data.company = requiredString(payload.company, 'company');
   }
 
   if (hasField(payload, 'position')) {
-    data.position = requiredString(payload.position, 'position')
+    data.position = requiredString(payload.position, 'position');
   }
 
   if (hasField(payload, 'vacancyUrl')) {
-    data.vacancyUrl = requiredString(payload.vacancyUrl, 'vacancyUrl')
+    data.vacancyUrl = requiredString(payload.vacancyUrl, 'vacancyUrl');
   }
 
   if (hasField(payload, 'status')) {
-    data.status = parseOptionalStatus(payload.status)
+    data.status = parseOptionalStatus(payload.status);
   }
 
   if (hasField(payload, 'source')) {
-    data.source = requiredString(payload.source, 'source')
+    data.source = requiredString(payload.source, 'source');
   }
 
   if (hasField(payload, 'salaryMin')) {
-    data.salaryMin = optionalNumber(payload.salaryMin, 'salaryMin')
+    data.salaryMin = optionalNumber(payload.salaryMin, 'salaryMin');
   }
 
   if (hasField(payload, 'salaryMax')) {
-    data.salaryMax = optionalNumber(payload.salaryMax, 'salaryMax')
+    data.salaryMax = optionalNumber(payload.salaryMax, 'salaryMax');
   }
 
   if (
@@ -188,53 +188,56 @@ export const parseJobUpdatePayload = (payload: JobPayload) => {
   ) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'salaryMin cannot be greater than salaryMax'
-    })
+      statusMessage: 'salaryMin cannot be greater than salaryMax',
+    });
   }
 
   if (hasField(payload, 'currency')) {
-    data.currency = optionalString(payload.currency)
+    data.currency = optionalString(payload.currency);
   }
 
   if (hasField(payload, 'location')) {
-    data.location = optionalString(payload.location)
+    data.location = optionalString(payload.location);
   }
 
   if (hasField(payload, 'remoteType')) {
-    data.remoteType = optionalString(payload.remoteType)
+    data.remoteType = optionalString(payload.remoteType);
   }
 
   if (hasField(payload, 'notes')) {
-    data.notes = optionalString(payload.notes)
+    data.notes = optionalString(payload.notes);
   }
 
   if (hasField(payload, 'appliedAt')) {
-    data.appliedAt = optionalDate(payload.appliedAt, 'appliedAt')
+    data.appliedAt = optionalDate(payload.appliedAt, 'appliedAt');
   }
 
   if (hasField(payload, 'nextFollowUpAt')) {
-    data.nextFollowUpAt = optionalDate(payload.nextFollowUpAt, 'nextFollowUpAt')
+    data.nextFollowUpAt = optionalDate(
+      payload.nextFollowUpAt,
+      'nextFollowUpAt',
+    );
   }
 
   if (Object.keys(data).length === 0) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'No fields to update'
-    })
+      statusMessage: 'No fields to update',
+    });
   }
 
-  return data
-}
+  return data;
+};
 
 export const getJobId = (event: Parameters<typeof getRouterParam>[0]) => {
-  const id = getRouterParam(event, 'id')
+  const id = getRouterParam(event, 'id');
 
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'id is required'
-    })
+      statusMessage: 'id is required',
+    });
   }
 
-  return id
-}
+  return id;
+};

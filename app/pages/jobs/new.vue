@@ -1,26 +1,26 @@
 <script setup lang="ts">
-const router = useRouter()
-const pending = ref(false)
-const errorMessage = ref('')
+const router = useRouter();
+const pending = ref(false);
+const errorMessage = ref('');
 
 const createJob = async (value: Record<string, unknown>) => {
-  pending.value = true
-  errorMessage.value = ''
+  pending.value = true;
+  errorMessage.value = '';
 
   try {
     const job = await $fetch<{ id: string }>('/api/jobs', {
       method: 'POST',
-      body: value
-    })
+      body: value,
+    });
 
-    await router.push(`/jobs/${job.id}`)
+    await router.push(`/jobs/${job.id}`);
   } catch (error) {
     errorMessage.value =
-      error instanceof Error ? error.message : 'Failed to create application'
+      error instanceof Error ? error.message : 'Failed to create application';
   } finally {
-    pending.value = false
+    pending.value = false;
   }
-}
+};
 </script>
 
 <template>

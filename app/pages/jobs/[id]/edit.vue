@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { toDateInput, type JobApplication } from '~/utils/job-applications'
+import { toDateInput, type JobApplication } from '~/utils/job-applications';
 
-const route = useRoute()
-const router = useRouter()
-const id = computed(() => String(route.params.id))
-const pending = ref(false)
-const deletePending = ref(false)
-const showDeleteConfirm = ref(false)
-const errorMessage = ref('')
+const route = useRoute();
+const router = useRouter();
+const id = computed(() => String(route.params.id));
+const pending = ref(false);
+const deletePending = ref(false);
+const showDeleteConfirm = ref(false);
+const errorMessage = ref('');
 
 const { data: job, error } = await useFetch<JobApplication>(
-  () => `/api/jobs/${id.value}`
-)
+  () => `/api/jobs/${id.value}`,
+);
 
 const initialValue = computed(() => {
   if (!job.value) {
-    return undefined
+    return undefined;
   }
 
   return {
@@ -31,50 +31,50 @@ const initialValue = computed(() => {
     remoteType: job.value.remoteType ?? '',
     notes: job.value.notes ?? '',
     appliedAt: toDateInput(job.value.appliedAt),
-    nextFollowUpAt: toDateInput(job.value.nextFollowUpAt)
-  }
-})
+    nextFollowUpAt: toDateInput(job.value.nextFollowUpAt),
+  };
+});
 
 const updateJob = async (value: Record<string, unknown>) => {
-  pending.value = true
-  errorMessage.value = ''
+  pending.value = true;
+  errorMessage.value = '';
 
   try {
     await $fetch(`/api/jobs/${id.value}`, {
       method: 'PATCH',
-      body: value
-    })
+      body: value,
+    });
 
-    await router.push('/jobs')
+    await router.push('/jobs');
   } catch (updateError) {
     errorMessage.value =
       updateError instanceof Error
         ? updateError.message
-        : 'Failed to update application'
+        : 'Failed to update application';
   } finally {
-    pending.value = false
+    pending.value = false;
   }
-}
+};
 
 const deleteJob = async () => {
-  deletePending.value = true
-  errorMessage.value = ''
+  deletePending.value = true;
+  errorMessage.value = '';
 
   try {
     await $fetch(`/api/jobs/${id.value}`, {
-      method: 'DELETE'
-    })
+      method: 'DELETE',
+    });
 
-    await router.push('/jobs')
+    await router.push('/jobs');
   } catch (deleteError) {
     errorMessage.value =
       deleteError instanceof Error
         ? deleteError.message
-        : 'Failed to delete application'
+        : 'Failed to delete application';
   } finally {
-    deletePending.value = false
+    deletePending.value = false;
   }
-}
+};
 </script>
 
 <template>

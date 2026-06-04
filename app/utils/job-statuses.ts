@@ -6,7 +6,7 @@ export type JobApplicationStatus =
   | 'FINAL_INTERVIEW'
   | 'OFFER'
   | 'REJECTED'
-  | 'ARCHIVED'
+  | 'ARCHIVED';
 
 export type JobStatusColor =
   | 'neutral'
@@ -14,7 +14,7 @@ export type JobStatusColor =
   | 'secondary'
   | 'success'
   | 'warning'
-  | 'error'
+  | 'error';
 
 export const jobStatusOptions = [
   { label: 'Saved', value: 'SAVED' },
@@ -24,14 +24,14 @@ export const jobStatusOptions = [
   { label: 'Final Interview', value: 'FINAL_INTERVIEW' },
   { label: 'Offer', value: 'OFFER' },
   { label: 'Rejected', value: 'REJECTED' },
-  { label: 'Archived', value: 'ARCHIVED' }
-] satisfies Array<{ label: string; value: JobApplicationStatus }>
+  { label: 'Archived', value: 'ARCHIVED' },
+] satisfies Array<{ label: string; value: JobApplicationStatus }>;
 
-export const interviewStatuses = [
+export const interviewStatuses = new Set<JobApplicationStatus>([
   'SCREENING',
   'TECHNICAL_INTERVIEW',
-  'FINAL_INTERVIEW'
-] satisfies JobApplicationStatus[]
+  'FINAL_INTERVIEW',
+]);
 
 export const jobStatusLabels: Record<JobApplicationStatus, string> = {
   SAVED: 'Saved',
@@ -41,8 +41,8 @@ export const jobStatusLabels: Record<JobApplicationStatus, string> = {
   FINAL_INTERVIEW: 'Final Interview',
   OFFER: 'Offer',
   REJECTED: 'Rejected',
-  ARCHIVED: 'Archived'
-}
+  ARCHIVED: 'Archived',
+};
 
 export const jobStatusColors: Record<JobApplicationStatus, JobStatusColor> = {
   SAVED: 'neutral',
@@ -52,5 +52,5 @@ export const jobStatusColors: Record<JobApplicationStatus, JobStatusColor> = {
   FINAL_INTERVIEW: 'warning',
   OFFER: 'success',
   REJECTED: 'error',
-  ARCHIVED: 'neutral'
-}
+  ARCHIVED: 'neutral',
+};

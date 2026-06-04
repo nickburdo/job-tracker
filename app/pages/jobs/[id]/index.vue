@@ -2,73 +2,73 @@
 import {
   jobStatusColors,
   jobStatusOptions,
-  type JobApplicationStatus
-} from '~/utils/job-statuses'
+  type JobApplicationStatus,
+} from '~/utils/job-statuses';
 import {
   formatJobDate,
   formatJobDateTime,
   formatJobSalary,
-  type JobApplication
-} from '~/utils/job-applications'
+  type JobApplication,
+} from '~/utils/job-applications';
 
-const route = useRoute()
-const router = useRouter()
-const id = computed(() => String(route.params.id))
-const deletePending = ref(false)
-const statusPending = ref(false)
-const showDeleteConfirm = ref(false)
-const errorMessage = ref('')
+const route = useRoute();
+const router = useRouter();
+const id = computed(() => String(route.params.id));
+const deletePending = ref(false);
+const statusPending = ref(false);
+const showDeleteConfirm = ref(false);
+const errorMessage = ref('');
 
 const { data: job, error } = await useFetch<JobApplication>(
-  () => `/api/jobs/${id.value}`
-)
+  () => `/api/jobs/${id.value}`,
+);
 
 const deleteJob = async () => {
-  deletePending.value = true
-  errorMessage.value = ''
+  deletePending.value = true;
+  errorMessage.value = '';
 
   try {
     await $fetch(`/api/jobs/${id.value}`, {
-      method: 'DELETE'
-    })
+      method: 'DELETE',
+    });
 
-    await router.push('/jobs')
+    await router.push('/jobs');
   } catch (deleteError) {
     errorMessage.value =
       deleteError instanceof Error
         ? deleteError.message
-        : 'Failed to delete application'
+        : 'Failed to delete application';
   } finally {
-    deletePending.value = false
+    deletePending.value = false;
   }
-}
+};
 
 const updateStatus = async (status: JobApplicationStatus) => {
   if (!job.value || job.value.status === status) {
-    return
+    return;
   }
 
-  statusPending.value = true
-  errorMessage.value = ''
+  statusPending.value = true;
+  errorMessage.value = '';
 
   try {
     const updatedJob = await $fetch<JobApplication>(`/api/jobs/${id.value}`, {
       method: 'PATCH',
       body: {
-        status
-      }
-    })
+        status,
+      },
+    });
 
-    job.value = updatedJob
+    job.value = updatedJob;
   } catch (statusError) {
     errorMessage.value =
       statusError instanceof Error
         ? statusError.message
-        : 'Failed to update status'
+        : 'Failed to update status';
   } finally {
-    statusPending.value = false
+    statusPending.value = false;
   }
-}
+};
 </script>
 
 <template>

@@ -1,28 +1,28 @@
 export default defineEventHandler(async (event) => {
-  const id = getJobId(event)
-  const payload = await readBody(event)
-  const data = parseJobUpdatePayload(payload)
+  const id = getJobId(event);
+  const payload = await readBody(event);
+  const data = parseJobUpdatePayload(payload);
 
   const existingJob = await prisma.jobApplication.findUnique({
     where: {
-      id
+      id,
     },
     select: {
-      id: true
-    }
-  })
+      id: true,
+    },
+  });
 
   if (!existingJob) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Job application not found'
-    })
+      statusMessage: 'Job application not found',
+    });
   }
 
   return prisma.jobApplication.update({
     where: {
-      id
+      id,
     },
-    data
-  })
-})
+    data,
+  });
+});

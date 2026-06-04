@@ -1,24 +1,24 @@
-import 'dotenv/config'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
-import { JobApplicationStatus, PrismaClient } from '../generated/prisma/client'
+import 'dotenv/config';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { JobApplicationStatus, PrismaClient } from '../generated/prisma/client';
 
-const databaseUrl = process.env.DATABASE_URL ?? 'file:./dev.db'
-const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
-const prisma = new PrismaClient({ adapter })
+const databaseUrl = process.env.DATABASE_URL ?? 'file:./dev.db';
+const adapter = new PrismaBetterSqlite3({ url: databaseUrl });
+const prisma = new PrismaClient({ adapter });
 
 const daysAgo = (days: number) => {
-  const date = new Date()
-  date.setDate(date.getDate() - days)
-  date.setHours(9, 0, 0, 0)
-  return date
-}
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  date.setHours(9, 0, 0, 0);
+  return date;
+};
 
 const daysFromNow = (days: number) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  date.setHours(10, 0, 0, 0)
-  return date
-}
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  date.setHours(10, 0, 0, 0);
+  return date;
+};
 
 const applications = [
   {
@@ -34,7 +34,7 @@ const applications = [
     remoteType: 'Remote',
     notes: 'Applied with portfolio link and Nuxt project highlights.',
     appliedAt: daysAgo(4),
-    nextFollowUpAt: daysFromNow(3)
+    nextFollowUpAt: daysFromNow(3),
   },
   {
     company: 'Atlas CRM',
@@ -49,7 +49,7 @@ const applications = [
     remoteType: 'Hybrid',
     notes: 'Recruiter screen scheduled. Ask about product team ownership.',
     appliedAt: daysAgo(9),
-    nextFollowUpAt: daysFromNow(1)
+    nextFollowUpAt: daysFromNow(1),
   },
   {
     company: 'Beacon Health',
@@ -64,7 +64,7 @@ const applications = [
     remoteType: 'Remote',
     notes: 'Technical interview focuses on Vue composables and API design.',
     appliedAt: daysAgo(14),
-    nextFollowUpAt: daysFromNow(2)
+    nextFollowUpAt: daysFromNow(2),
   },
   {
     company: 'Ledgerly',
@@ -79,7 +79,7 @@ const applications = [
     remoteType: 'Hybrid',
     notes: 'Final round with CTO. Prepare examples about tradeoffs.',
     appliedAt: daysAgo(21),
-    nextFollowUpAt: daysFromNow(4)
+    nextFollowUpAt: daysFromNow(4),
   },
   {
     company: 'SignalForge',
@@ -93,7 +93,7 @@ const applications = [
     location: 'Remote',
     remoteType: 'Remote',
     notes: 'Strong fit. Need tailor resume before applying.',
-    nextFollowUpAt: daysFromNow(5)
+    nextFollowUpAt: daysFromNow(5),
   },
   {
     company: 'Riverbank AI',
@@ -107,7 +107,7 @@ const applications = [
     location: 'San Francisco, CA',
     remoteType: 'On-site',
     notes: 'Rejected after screening. Needed more design system experience.',
-    appliedAt: daysAgo(28)
+    appliedAt: daysAgo(28),
   },
   {
     company: 'CraftDesk',
@@ -122,7 +122,7 @@ const applications = [
     remoteType: 'Remote',
     notes: 'Offer received. Compare benefits and equity terms.',
     appliedAt: daysAgo(35),
-    nextFollowUpAt: daysFromNow(1)
+    nextFollowUpAt: daysFromNow(1),
   },
   {
     company: 'OrbitOps',
@@ -137,7 +137,7 @@ const applications = [
     remoteType: 'Hybrid',
     notes: 'Role is dashboard-heavy. Good portfolio angle.',
     appliedAt: daysAgo(2),
-    nextFollowUpAt: daysFromNow(6)
+    nextFollowUpAt: daysFromNow(6),
   },
   {
     company: 'BluePeak Systems',
@@ -151,7 +151,7 @@ const applications = [
     location: 'Denver, CO',
     remoteType: 'On-site',
     notes: 'Archived because relocation requirement is too strict.',
-    appliedAt: daysAgo(40)
+    appliedAt: daysAgo(40),
   },
   {
     company: 'HirePilot',
@@ -166,7 +166,7 @@ const applications = [
     remoteType: 'Remote',
     notes: 'Screening call complete. Waiting for take-home assignment.',
     appliedAt: daysAgo(11),
-    nextFollowUpAt: daysAgo(1)
+    nextFollowUpAt: daysAgo(1),
   },
   {
     company: 'MetricHouse',
@@ -181,7 +181,7 @@ const applications = [
     remoteType: 'Hybrid',
     notes: 'Prepare chart accessibility and table performance examples.',
     appliedAt: daysAgo(17),
-    nextFollowUpAt: daysFromNow(7)
+    nextFollowUpAt: daysFromNow(7),
   },
   {
     company: 'GreenGrid',
@@ -196,7 +196,7 @@ const applications = [
     remoteType: 'Remote',
     notes: 'Mission-aligned role. Mention data visualization work.',
     appliedAt: daysAgo(6),
-    nextFollowUpAt: daysFromNow(2)
+    nextFollowUpAt: daysFromNow(2),
   },
   {
     company: 'StackFoundry',
@@ -210,7 +210,7 @@ const applications = [
     location: 'Remote',
     remoteType: 'Remote',
     notes: 'Review job description again before applying.',
-    nextFollowUpAt: daysFromNow(8)
+    nextFollowUpAt: daysFromNow(8),
   },
   {
     company: 'BrightCart',
@@ -224,7 +224,7 @@ const applications = [
     location: 'Seattle, WA',
     remoteType: 'Hybrid',
     notes: 'Rejected after technical interview. Improve testing examples.',
-    appliedAt: daysAgo(31)
+    appliedAt: daysAgo(31),
   },
   {
     company: 'CoreBridge',
@@ -239,7 +239,7 @@ const applications = [
     remoteType: 'Remote',
     notes: 'Final conversation about backend depth and ownership.',
     appliedAt: daysAgo(24),
-    nextFollowUpAt: daysFromNow(3)
+    nextFollowUpAt: daysFromNow(3),
   },
   {
     company: 'PixelRail',
@@ -254,24 +254,24 @@ const applications = [
     remoteType: 'Hybrid',
     notes: 'Highlight component library and accessibility experience.',
     appliedAt: daysAgo(1),
-    nextFollowUpAt: daysFromNow(9)
-  }
-]
+    nextFollowUpAt: daysFromNow(9),
+  },
+];
 
 async function main() {
-  await prisma.jobApplication.deleteMany()
+  await prisma.jobApplication.deleteMany();
   await prisma.jobApplication.createMany({
-    data: applications
-  })
+    data: applications,
+  });
 
-  console.log(`Seeded ${applications.length} job applications.`)
+  console.log(`Seeded ${applications.length} job applications.`);
 }
 
 main()
   .catch((error) => {
-    console.error(error)
-    process.exitCode = 1
+    console.error(error);
+    process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

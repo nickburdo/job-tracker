@@ -1,42 +1,42 @@
 <script setup lang="ts">
 import {
   jobStatusOptions,
-  type JobApplicationStatus
-} from '~/utils/job-statuses'
+  type JobApplicationStatus,
+} from '~/utils/job-statuses';
 
 type JobFormValue = {
-  company: string
-  position: string
-  vacancyUrl: string
-  status: JobApplicationStatus
-  source: string
-  salaryMin: number | null
-  salaryMax: number | null
-  currency: string
-  location: string
-  remoteType: string
-  notes: string
-  appliedAt: string
-  nextFollowUpAt: string
-}
+  company: string;
+  position: string;
+  vacancyUrl: string;
+  status: JobApplicationStatus;
+  source: string;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  currency: string;
+  location: string;
+  remoteType: string;
+  notes: string;
+  appliedAt: string;
+  nextFollowUpAt: string;
+};
 
 const props = defineProps<{
-  initialValue?: Partial<JobFormValue>
-  submitLabel: string
-  pending?: boolean
-  errorMessage?: string
-}>()
+  initialValue?: Partial<JobFormValue>;
+  submitLabel: string;
+  pending?: boolean;
+  errorMessage?: string;
+}>();
 
 const emit = defineEmits<{
-  submit: [value: JobFormValue]
-}>()
+  submit: [value: JobFormValue];
+}>();
 
 const remoteTypeOptions = [
   { label: 'Not set', value: 'NOT_SET' },
   { label: 'Remote', value: 'Remote' },
   { label: 'Hybrid', value: 'Hybrid' },
-  { label: 'On-site', value: 'On-site' }
-]
+  { label: 'On-site', value: 'On-site' },
+];
 
 const form = reactive<JobFormValue>({
   company: props.initialValue?.company ?? '',
@@ -51,44 +51,44 @@ const form = reactive<JobFormValue>({
   remoteType: props.initialValue?.remoteType || 'NOT_SET',
   notes: props.initialValue?.notes ?? '',
   appliedAt: props.initialValue?.appliedAt ?? '',
-  nextFollowUpAt: props.initialValue?.nextFollowUpAt ?? ''
-})
+  nextFollowUpAt: props.initialValue?.nextFollowUpAt ?? '',
+});
 
-const fieldErrors = ref<Partial<Record<keyof JobFormValue, string>>>({})
+const fieldErrors = ref<Partial<Record<keyof JobFormValue, string>>>({});
 
 const clearErrors = () => {
-  fieldErrors.value = {}
-}
+  fieldErrors.value = {};
+};
 
 const isValidUrl = (value: string) => {
   try {
-    const url = new URL(value)
+    const url = new URL(value);
 
-    return url.protocol === 'http:' || url.protocol === 'https:'
+    return url.protocol === 'http:' || url.protocol === 'https:';
   } catch {
-    return false
+    return false;
   }
-}
+};
 
 const validateForm = () => {
-  clearErrors()
+  clearErrors();
 
   if (!form.company.trim()) {
-    fieldErrors.value.company = 'Company is required'
+    fieldErrors.value.company = 'Company is required';
   }
 
   if (!form.position.trim()) {
-    fieldErrors.value.position = 'Position is required'
+    fieldErrors.value.position = 'Position is required';
   }
 
   if (!form.vacancyUrl.trim()) {
-    fieldErrors.value.vacancyUrl = 'Vacancy URL is required'
+    fieldErrors.value.vacancyUrl = 'Vacancy URL is required';
   } else if (!isValidUrl(form.vacancyUrl)) {
-    fieldErrors.value.vacancyUrl = 'Enter a valid http or https URL'
+    fieldErrors.value.vacancyUrl = 'Enter a valid http or https URL';
   }
 
   if (!form.source.trim()) {
-    fieldErrors.value.source = 'Source is required'
+    fieldErrors.value.source = 'Source is required';
   }
 
   if (
@@ -96,16 +96,16 @@ const validateForm = () => {
     form.salaryMax !== null &&
     form.salaryMin > form.salaryMax
   ) {
-    fieldErrors.value.salaryMin = 'Min salary cannot exceed max salary'
-    fieldErrors.value.salaryMax = 'Max salary cannot be lower than min salary'
+    fieldErrors.value.salaryMin = 'Min salary cannot exceed max salary';
+    fieldErrors.value.salaryMax = 'Max salary cannot be lower than min salary';
   }
 
-  return Object.keys(fieldErrors.value).length === 0
-}
+  return Object.keys(fieldErrors.value).length === 0;
+};
 
 const onSubmit = () => {
   if (!validateForm()) {
-    return
+    return;
   }
 
   emit('submit', {
@@ -116,9 +116,9 @@ const onSubmit = () => {
     source: form.source.trim(),
     currency: form.currency.trim(),
     location: form.location.trim(),
-    remoteType: form.remoteType === 'NOT_SET' ? '' : form.remoteType
-  })
-}
+    remoteType: form.remoteType === 'NOT_SET' ? '' : form.remoteType,
+  });
+};
 </script>
 
 <template>

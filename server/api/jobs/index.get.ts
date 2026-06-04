@@ -1,21 +1,21 @@
-import { JobApplicationStatus } from '../../../generated/prisma/client'
+import { JobApplicationStatus } from '../../../generated/prisma/client';
 
 export default defineEventHandler(async (event) => {
-  const query = getQuery(event)
-  const status = typeof query.status === 'string' ? query.status : undefined
-  const company = typeof query.company === 'string' ? query.company : undefined
-  const search = typeof query.search === 'string' ? query.search : undefined
+  const query = getQuery(event);
+  const status = typeof query.status === 'string' ? query.status : undefined;
+  const company = typeof query.company === 'string' ? query.company : undefined;
+  const search = typeof query.search === 'string' ? query.search : undefined;
 
   if (
     status &&
     !Object.values(JobApplicationStatus).includes(
-      status as JobApplicationStatus
+      status as JobApplicationStatus,
     )
   ) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'status is invalid'
-    })
+      statusMessage: 'status is invalid',
+    });
   }
 
   return prisma.jobApplication.findMany({
@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
       ...(company
         ? {
             company: {
-              contains: company
-            }
+              contains: company,
+            },
           }
         : {}),
       ...(search
@@ -33,30 +33,30 @@ export default defineEventHandler(async (event) => {
             OR: [
               {
                 company: {
-                  contains: search
-                }
+                  contains: search,
+                },
               },
               {
                 position: {
-                  contains: search
-                }
+                  contains: search,
+                },
               },
               {
                 source: {
-                  contains: search
-                }
+                  contains: search,
+                },
               },
               {
                 notes: {
-                  contains: search
-                }
-              }
-            ]
+                  contains: search,
+                },
+              },
+            ],
           }
-        : {})
+        : {}),
     },
     orderBy: {
-      createdAt: 'desc'
-    }
-  })
-})
+      createdAt: 'desc',
+    },
+  });
+});

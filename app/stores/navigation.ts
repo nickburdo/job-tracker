@@ -2,15 +2,15 @@ export const useNavigationStore = defineStore('navigation', () => {
   const items = [
     {
       label: 'Overview',
-      to: '/'
+      to: '/',
     },
     {
       label: 'Applications',
-      to: '/jobs'
-    }
-  ]
+      to: '/jobs',
+    },
+  ];
 
   return {
-    items
-  }
-})
+    items,
+  };
+});

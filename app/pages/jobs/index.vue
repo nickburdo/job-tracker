@@ -3,113 +3,113 @@ import {
   interviewStatuses,
   jobStatusColors,
   jobStatusLabels,
-  jobStatusOptions
-} from '~/utils/job-statuses'
+  jobStatusOptions,
+} from '~/utils/job-statuses';
 import {
   formatAppliedDate,
   formatJobDate,
   formatJobSalary,
   isFollowUpOverdue,
-  type JobApplication
-} from '~/utils/job-applications'
+  type JobApplication,
+} from '~/utils/job-applications';
 
-const allStatusesValue = 'ALL_STATUSES'
-const allCompaniesValue = 'ALL_COMPANIES'
+const allStatusesValue = 'ALL_STATUSES';
+const allCompaniesValue = 'ALL_COMPANIES';
 const statusOptions = [
   {
     label: 'All statuses',
-    value: allStatusesValue
+    value: allStatusesValue,
   },
   {
     label: 'Interviews',
-    value: 'INTERVIEWS'
+    value: 'INTERVIEWS',
   },
-  ...jobStatusOptions
-]
+  ...jobStatusOptions,
+];
 
-const search = ref('')
-const selectedStatus = ref(allStatusesValue)
-const selectedCompany = ref(allCompaniesValue)
+const search = ref('');
+const selectedStatus = ref(allStatusesValue);
+const selectedCompany = ref(allCompaniesValue);
 
 const {
   data: allJobs,
   pending,
-  error
-} = await useFetch<JobApplication[]>('/api/jobs')
+  error,
+} = await useFetch<JobApplication[]>('/api/jobs');
 
-const normalizedSearch = computed(() => search.value.trim().toLowerCase())
+const normalizedSearch = computed(() => search.value.trim().toLowerCase());
 
 const matchesSearch = (job: JobApplication) => {
   if (!normalizedSearch.value) {
-    return true
+    return true;
   }
 
   return [job.company, job.position, job.source, job.notes]
     .filter(Boolean)
-    .some((value) => value?.toLowerCase().includes(normalizedSearch.value))
-}
+    .some((value) => value?.toLowerCase().includes(normalizedSearch.value));
+};
 
 const matchesCompany = (job: JobApplication) =>
   selectedCompany.value === allCompaniesValue ||
-  job.company === selectedCompany.value
+  job.company === selectedCompany.value;
 
 const matchesStatus = (job: JobApplication) => {
   if (selectedStatus.value === allStatusesValue) {
-    return true
+    return true;
   }
 
   if (selectedStatus.value === 'INTERVIEWS') {
-    return interviewStatuses.includes(job.status)
+    return interviewStatuses.has(job.status);
   }
 
-  return job.status === selectedStatus.value
-}
+  return job.status === selectedStatus.value;
+};
 
 const baseList = computed(() =>
   (allJobs.value ?? []).filter(
-    (job) => matchesSearch(job) && matchesCompany(job)
-  )
-)
+    (job) => matchesSearch(job) && matchesCompany(job),
+  ),
+);
 
-const jobList = computed(() => baseList.value.filter(matchesStatus))
+const jobList = computed(() => baseList.value.filter(matchesStatus));
 
 const companyOptions = computed(() => [
   {
     label: 'All companies',
-    value: allCompaniesValue
+    value: allCompaniesValue,
   },
   ...Array.from(new Set((allJobs.value ?? []).map((job) => job.company)))
     .sort((a, b) => a.localeCompare(b))
     .map((company) => ({
       label: company,
-      value: company
-    }))
-])
+      value: company,
+    })),
+]);
 
 const stats = computed(() => {
-  const total = baseList.value.length
+  const total = baseList.value.length;
   const interviews = baseList.value.filter((job) =>
-    interviewStatuses.includes(job.status)
-  ).length
-  const offers = baseList.value.filter((job) => job.status === 'OFFER').length
+    interviewStatuses.has(job.status),
+  ).length;
+  const offers = baseList.value.filter((job) => job.status === 'OFFER').length;
   const rejections = baseList.value.filter(
-    (job) => job.status === 'REJECTED'
-  ).length
+    (job) => job.status === 'REJECTED',
+  ).length;
 
   return {
     total,
     interviews,
     offers,
-    rejections
-  }
-})
+    rejections,
+  };
+});
 
 const statCardClass = (value: string) => [
   'rounded-lg border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
   selectedStatus.value === value
     ? 'border-primary bg-primary/10'
-    : 'border-default bg-elevated hover:bg-muted'
-]
+    : 'border-default bg-elevated hover:bg-muted',
+];
 </script>
 
 <template>
@@ -139,40 +139,40 @@ const statCardClass = (value: string) => [
             :class="statCardClass(allStatusesValue)"
             @click="selectedStatus = allStatusesValue"
           >
-            <p class="text-sm text-muted">Total</p>
-            <p class="mt-2 text-2xl font-semibold text-highlighted">
+            <span class="block text-sm text-muted">Total</span>
+            <span class="block mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.total }}
-            </p>
+            </span>
           </button>
           <button
             type="button"
             :class="statCardClass('INTERVIEWS')"
             @click="selectedStatus = 'INTERVIEWS'"
           >
-            <p class="text-sm text-muted">Interviews</p>
-            <p class="mt-2 text-2xl font-semibold text-highlighted">
+            <span class="block text-sm text-muted">Interviews</span>
+            <span class="block mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.interviews }}
-            </p>
+            </span>
           </button>
           <button
             type="button"
             :class="statCardClass('OFFER')"
             @click="selectedStatus = 'OFFER'"
           >
-            <p class="text-sm text-muted">Offers</p>
-            <p class="mt-2 text-2xl font-semibold text-highlighted">
+            <span class="block text-sm text-muted">Offers</span>
+            <span class="block mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.offers }}
-            </p>
+            </span>
           </button>
           <button
             type="button"
             :class="statCardClass('REJECTED')"
             @click="selectedStatus = 'REJECTED'"
           >
-            <p class="text-sm text-muted">Rejections</p>
-            <p class="mt-2 text-2xl font-semibold text-highlighted">
+            <span class="block text-sm text-muted">Rejections</span>
+            <span class="block mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.rejections }}
-            </p>
+            </span>
           </button>
         </div>
 

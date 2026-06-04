@@ -1,28 +1,28 @@
 export default defineEventHandler(async (event) => {
-  const id = getJobId(event)
+  const id = getJobId(event);
   const existingJob = await prisma.jobApplication.findUnique({
     where: {
-      id
+      id,
     },
     select: {
-      id: true
-    }
-  })
+      id: true,
+    },
+  });
 
   if (!existingJob) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Job application not found'
-    })
+      statusMessage: 'Job application not found',
+    });
   }
 
   await prisma.jobApplication.delete({
     where: {
-      id
-    }
-  })
+      id,
+    },
+  });
 
   return {
-    ok: true
-  }
-})
+    ok: true,
+  };
+});

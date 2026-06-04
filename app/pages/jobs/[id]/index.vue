@@ -1,13 +1,10 @@
 <script setup lang="ts">
-type JobApplicationStatus =
-  | 'SAVED'
-  | 'APPLIED'
-  | 'SCREENING'
-  | 'TECHNICAL_INTERVIEW'
-  | 'FINAL_INTERVIEW'
-  | 'OFFER'
-  | 'REJECTED'
-  | 'ARCHIVED'
+import {
+  jobStatusColors,
+  jobStatusLabels,
+  jobStatusOptions,
+  type JobApplicationStatus
+} from '~/utils/job-statuses'
 
 type JobApplication = {
   id: string
@@ -32,37 +29,13 @@ const route = useRoute()
 const router = useRouter()
 const id = computed(() => String(route.params.id))
 const deletePending = ref(false)
+const statusPending = ref(false)
 const showDeleteConfirm = ref(false)
 const errorMessage = ref('')
 
 const { data: job, error } = await useFetch<JobApplication>(
   () => `/api/jobs/${id.value}`
 )
-
-const statusLabels: Record<JobApplicationStatus, string> = {
-  SAVED: 'Saved',
-  APPLIED: 'Applied',
-  SCREENING: 'Screening',
-  TECHNICAL_INTERVIEW: 'Technical Interview',
-  FINAL_INTERVIEW: 'Final Interview',
-  OFFER: 'Offer',
-  REJECTED: 'Rejected',
-  ARCHIVED: 'Archived'
-}
-
-const statusColors: Record<
-  JobApplicationStatus,
-  'neutral' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
-> = {
-  SAVED: 'neutral',
-  APPLIED: 'primary',
-  SCREENING: 'secondary',
-  TECHNICAL_INTERVIEW: 'warning',
-  FINAL_INTERVIEW: 'warning',
-  OFFER: 'success',
-  REJECTED: 'error',
-  ARCHIVED: 'neutral'
-}
 
 const formatDate = (value: string | null) => {
   if (!value) {
@@ -122,6 +95,33 @@ const deleteJob = async () => {
     deletePending.value = false
   }
 }
+
+const updateStatus = async (status: JobApplicationStatus) => {
+  if (!job.value || job.value.status === status) {
+    return
+  }
+
+  statusPending.value = true
+  errorMessage.value = ''
+
+  try {
+    const updatedJob = await $fetch<JobApplication>(`/api/jobs/${id.value}`, {
+      method: 'PATCH',
+      body: {
+        status
+      }
+    })
+
+    job.value = updatedJob
+  } catch (statusError) {
+    errorMessage.value =
+      statusError instanceof Error
+        ? statusError.message
+        : 'Failed to update status'
+  } finally {
+    statusPending.value = false
+  }
+}
 </script>
 
 <template>
@@ -156,8 +156,8 @@ const deleteJob = async () => {
                 >
                   {{ job.position }}
                 </h1>
-                <UBadge :color="statusColors[job.status]" variant="subtle">
-                  {{ statusLabels[job.status] }}
+                <UBadge :color="jobStatusColors[job.status]" variant="subtle">
+                  {{ jobStatusLabels[job.status] }}
                 </UBadge>
               </div>
               <p class="mt-1 text-sm text-muted">
@@ -165,7 +165,15 @@ const deleteJob = async () => {
               </p>
             </div>
 
-            <div class="flex gap-2">
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <USelectMenu
+                :model-value="job.status"
+                :items="jobStatusOptions"
+                value-key="value"
+                class="w-full sm:w-56"
+                :disabled="statusPending"
+                @update:model-value="updateStatus"
+              />
               <UButton
                 :to="`/jobs/${job.id}/edit`"
                 color="neutral"

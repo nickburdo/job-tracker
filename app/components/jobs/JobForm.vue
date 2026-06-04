@@ -1,13 +1,8 @@
 <script setup lang="ts">
-type JobApplicationStatus =
-  | 'SAVED'
-  | 'APPLIED'
-  | 'SCREENING'
-  | 'TECHNICAL_INTERVIEW'
-  | 'FINAL_INTERVIEW'
-  | 'OFFER'
-  | 'REJECTED'
-  | 'ARCHIVED'
+import {
+  jobStatusOptions,
+  type JobApplicationStatus
+} from '~/utils/job-statuses'
 
 type JobFormValue = {
   company: string
@@ -35,17 +30,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   submit: [value: JobFormValue]
 }>()
-
-const statusOptions = [
-  { label: 'Saved', value: 'SAVED' },
-  { label: 'Applied', value: 'APPLIED' },
-  { label: 'Screening', value: 'SCREENING' },
-  { label: 'Technical Interview', value: 'TECHNICAL_INTERVIEW' },
-  { label: 'Final Interview', value: 'FINAL_INTERVIEW' },
-  { label: 'Offer', value: 'OFFER' },
-  { label: 'Rejected', value: 'REJECTED' },
-  { label: 'Archived', value: 'ARCHIVED' }
-]
 
 const remoteTypeOptions = [
   { label: 'Not set', value: 'NOT_SET' },
@@ -178,7 +162,7 @@ const onSubmit = () => {
       <UFormField label="Status">
         <USelectMenu
           v-model="form.status"
-          :items="statusOptions"
+          :items="jobStatusOptions"
           class="w-full"
           value-key="value"
         />

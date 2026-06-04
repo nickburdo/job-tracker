@@ -1,13 +1,5 @@
 <script setup lang="ts">
-type JobApplicationStatus =
-  | 'SAVED'
-  | 'APPLIED'
-  | 'SCREENING'
-  | 'TECHNICAL_INTERVIEW'
-  | 'FINAL_INTERVIEW'
-  | 'OFFER'
-  | 'REJECTED'
-  | 'ARCHIVED'
+import type { JobApplicationStatus } from '~/utils/job-statuses'
 
 type JobApplication = {
   id: string

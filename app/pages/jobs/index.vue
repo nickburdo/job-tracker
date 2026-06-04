@@ -1,13 +1,11 @@
 <script setup lang="ts">
-type JobApplicationStatus =
-  | 'SAVED'
-  | 'APPLIED'
-  | 'SCREENING'
-  | 'TECHNICAL_INTERVIEW'
-  | 'FINAL_INTERVIEW'
-  | 'OFFER'
-  | 'REJECTED'
-  | 'ARCHIVED'
+import {
+  interviewStatuses,
+  jobStatusColors,
+  jobStatusLabels,
+  jobStatusOptions,
+  type JobApplicationStatus
+} from '~/utils/job-statuses'
 
 type JobApplication = {
   id: string
@@ -30,12 +28,6 @@ type JobApplication = {
 
 const allStatusesValue = 'ALL_STATUSES'
 const allCompaniesValue = 'ALL_COMPANIES'
-const interviewStatuses: JobApplicationStatus[] = [
-  'SCREENING',
-  'TECHNICAL_INTERVIEW',
-  'FINAL_INTERVIEW'
-]
-
 const statusOptions = [
   {
     label: 'All statuses',
@@ -45,38 +37,7 @@ const statusOptions = [
     label: 'Interviews',
     value: 'INTERVIEWS'
   },
-  {
-    label: 'Saved',
-    value: 'SAVED'
-  },
-  {
-    label: 'Applied',
-    value: 'APPLIED'
-  },
-  {
-    label: 'Screening',
-    value: 'SCREENING'
-  },
-  {
-    label: 'Technical Interview',
-    value: 'TECHNICAL_INTERVIEW'
-  },
-  {
-    label: 'Final Interview',
-    value: 'FINAL_INTERVIEW'
-  },
-  {
-    label: 'Offer',
-    value: 'OFFER'
-  },
-  {
-    label: 'Rejected',
-    value: 'REJECTED'
-  },
-  {
-    label: 'Archived',
-    value: 'ARCHIVED'
-  }
+  ...jobStatusOptions
 ]
 
 const search = ref('')
@@ -155,31 +116,6 @@ const stats = computed(() => {
     rejections
   }
 })
-
-const statusLabels: Record<JobApplicationStatus, string> = {
-  SAVED: 'Saved',
-  APPLIED: 'Applied',
-  SCREENING: 'Screening',
-  TECHNICAL_INTERVIEW: 'Technical Interview',
-  FINAL_INTERVIEW: 'Final Interview',
-  OFFER: 'Offer',
-  REJECTED: 'Rejected',
-  ARCHIVED: 'Archived'
-}
-
-const statusColors: Record<
-  JobApplicationStatus,
-  'neutral' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
-> = {
-  SAVED: 'neutral',
-  APPLIED: 'primary',
-  SCREENING: 'secondary',
-  TECHNICAL_INTERVIEW: 'warning',
-  FINAL_INTERVIEW: 'warning',
-  OFFER: 'success',
-  REJECTED: 'error',
-  ARCHIVED: 'neutral'
-}
 
 const formatDate = (value: string | null) => {
   if (!value) {
@@ -366,8 +302,8 @@ const statCardClass = (value: string) => [
                 <h2 class="truncate text-base font-semibold text-highlighted">
                   {{ job.position }}
                 </h2>
-                <UBadge :color="statusColors[job.status]" variant="subtle">
-                  {{ statusLabels[job.status] }}
+                <UBadge :color="jobStatusColors[job.status]" variant="subtle">
+                  {{ jobStatusLabels[job.status] }}
                 </UBadge>
               </div>
               <p class="mt-1 text-sm text-muted">

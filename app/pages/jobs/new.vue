@@ -1,11 +1,10 @@
 <script setup lang="ts">
 const router = useRouter();
+const toast = useToast();
 const pending = ref(false);
-const errorMessage = ref('');
 
 const createJob = async (value: Record<string, unknown>) => {
   pending.value = true;
-  errorMessage.value = '';
 
   try {
     const job = await $fetch<{ id: string }>('/api/jobs', {
@@ -13,10 +12,12 @@ const createJob = async (value: Record<string, unknown>) => {
       body: value,
     });
 
+    toast.add({ title: 'Application created', color: 'success' });
     await router.push(`/jobs/${job.id}`);
   } catch (error) {
-    errorMessage.value =
+    const errorMessage =
       error instanceof Error ? error.message : 'Failed to create application';
+    toast.add({ title: errorMessage, color: 'error' });
   } finally {
     pending.value = false;
   }
@@ -39,7 +40,6 @@ const createJob = async (value: Record<string, unknown>) => {
         <JobsJobForm
           submit-label="Create application"
           :pending="pending"
-          :error-message="errorMessage"
           @submit="createJob"
         />
       </div>

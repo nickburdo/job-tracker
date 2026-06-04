@@ -1,16 +1,15 @@
 <script setup lang="ts">
 const router = useRouter();
+const toast = useToast();
 const props = defineProps<{
   jobId: string;
 }>();
 
 const open = ref(false);
 const deletePending = ref(false);
-const errorMessage = ref('');
 
 const deleteJob = async () => {
   deletePending.value = true;
-  errorMessage.value = '';
 
   try {
     await $fetch(`/api/jobs/${props.jobId}`, {
@@ -18,12 +17,14 @@ const deleteJob = async () => {
     });
 
     open.value = false;
+    toast.add({ title: 'Application deleted', color: 'success' });
     await router.push('/jobs');
   } catch (deleteError) {
-    errorMessage.value =
+    const errorMessage =
       deleteError instanceof Error
         ? deleteError.message
         : 'Failed to delete application';
+    toast.add({ title: errorMessage, color: 'error' });
   } finally {
     deletePending.value = false;
   }
@@ -38,12 +39,6 @@ const deleteJob = async () => {
 
     <template #body>
       <p>This removes the application permanently.</p>
-      <div
-        v-if="errorMessage"
-        class="rounded-lg border border-error/30 bg-error/10 p-2 mt-4 text-sm text-error"
-      >
-        {{ errorMessage }}
-      </div>
     </template>
 
     <template #footer>

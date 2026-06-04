@@ -3,9 +3,9 @@ import { toDateInput, type JobApplication } from '~/utils/job-applications';
 
 const route = useRoute();
 const router = useRouter();
+const toast = useToast();
 const id = computed(() => String(route.params.id));
 const pending = ref(false);
-const errorMessage = ref('');
 
 const { data: job, error } = await useFetch<JobApplication>(
   () => `/api/jobs/${id.value}`,
@@ -35,7 +35,6 @@ const initialValue = computed(() => {
 
 const updateJob = async (value: Record<string, unknown>) => {
   pending.value = true;
-  errorMessage.value = '';
 
   try {
     await $fetch(`/api/jobs/${id.value}`, {
@@ -43,12 +42,14 @@ const updateJob = async (value: Record<string, unknown>) => {
       body: value,
     });
 
+    toast.add({ title: 'Application updated', color: 'success' });
     await router.push(`/jobs/${id.value}`);
   } catch (updateError) {
-    errorMessage.value =
+    const errorMessage =
       updateError instanceof Error
         ? updateError.message
         : 'Failed to update application';
+    toast.add({ title: errorMessage, color: 'error' });
   } finally {
     pending.value = false;
   }
@@ -98,7 +99,6 @@ const updateJob = async (value: Record<string, unknown>) => {
           :initial-value="initialValue"
           submit-label="Save changes"
           :pending="pending"
-          :error-message="errorMessage"
           @submit="updateJob"
         />
       </div>

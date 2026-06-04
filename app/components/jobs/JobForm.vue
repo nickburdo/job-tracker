@@ -24,7 +24,6 @@ const props = defineProps<{
   initialValue?: Partial<JobFormValue>;
   submitLabel: string;
   pending?: boolean;
-  errorMessage?: string;
 }>();
 
 const emit = defineEmits<{
@@ -133,13 +132,6 @@ const handleCancel = () => {
 
 <template>
   <form class="flex flex-col gap-6" @submit.prevent="onSubmit">
-    <div
-      v-if="errorMessage"
-      class="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
-    >
-      {{ errorMessage }}
-    </div>
-
     <div class="grid gap-4 lg:grid-cols-2">
       <UFormField label="Company" :error="fieldErrors.company" required>
         <UInput

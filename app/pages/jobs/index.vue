@@ -3,28 +3,15 @@ import {
   interviewStatuses,
   jobStatusColors,
   jobStatusLabels,
-  jobStatusOptions,
-  type JobApplicationStatus
+  jobStatusOptions
 } from '~/utils/job-statuses'
-
-type JobApplication = {
-  id: string
-  company: string
-  position: string
-  vacancyUrl: string
-  status: JobApplicationStatus
-  source: string
-  salaryMin: number | null
-  salaryMax: number | null
-  currency: string | null
-  location: string | null
-  remoteType: string | null
-  notes: string | null
-  appliedAt: string | null
-  nextFollowUpAt: string | null
-  createdAt: string
-  updatedAt: string
-}
+import {
+  formatAppliedDate,
+  formatJobDate,
+  formatJobSalary,
+  isFollowUpOverdue,
+  type JobApplication
+} from '~/utils/job-applications'
 
 const allStatusesValue = 'ALL_STATUSES'
 const allCompaniesValue = 'ALL_COMPANIES'
@@ -116,56 +103,6 @@ const stats = computed(() => {
     rejections
   }
 })
-
-const formatDate = (value: string | null) => {
-  if (!value) {
-    return 'Not set'
-  }
-
-  return new Intl.DateTimeFormat('en', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(new Date(value))
-}
-
-const formatSalary = (job: JobApplication) => {
-  if (!job.salaryMin && !job.salaryMax) {
-    return 'Salary not listed'
-  }
-
-  const currency = job.currency ?? 'USD'
-  const formatter = new Intl.NumberFormat('en', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0
-  })
-
-  if (job.salaryMin && job.salaryMax) {
-    return `${formatter.format(job.salaryMin)} - ${formatter.format(job.salaryMax)}`
-  }
-
-  return formatter.format(job.salaryMin ?? job.salaryMax ?? 0)
-}
-
-const isFollowUpOverdue = (value: string | null) => {
-  if (!value) {
-    return false
-  }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  return new Date(value) < today
-}
-
-const formatAppliedDate = (value: string | null) => {
-  if (!value) {
-    return 'Applied date not set'
-  }
-
-  return `Applied ${formatDate(value)}`
-}
 
 const statCardClass = (value: string) => [
   'rounded-lg border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
@@ -327,7 +264,7 @@ const statCardClass = (value: string) => [
             <div>
               <p class="text-xs font-medium uppercase text-muted">Salary</p>
               <p class="mt-1 text-sm text-highlighted">
-                {{ formatSalary(job) }}
+                {{ formatJobSalary(job) }}
               </p>
             </div>
 
@@ -341,7 +278,7 @@ const statCardClass = (value: string) => [
                     : 'text-highlighted'
                 "
               >
-                {{ formatDate(job.nextFollowUpAt) }}
+                {{ formatJobDate(job.nextFollowUpAt) }}
               </p>
               <p class="mt-1 text-xs text-muted">
                 {{ formatAppliedDate(job.appliedAt) }}

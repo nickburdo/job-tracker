@@ -4,25 +4,12 @@ import {
   jobStatusOptions,
   type JobApplicationStatus
 } from '~/utils/job-statuses'
-
-type JobApplication = {
-  id: string
-  company: string
-  position: string
-  vacancyUrl: string
-  status: JobApplicationStatus
-  source: string
-  salaryMin: number | null
-  salaryMax: number | null
-  currency: string | null
-  location: string | null
-  remoteType: string | null
-  notes: string | null
-  appliedAt: string | null
-  nextFollowUpAt: string | null
-  createdAt: string
-  updatedAt: string
-}
+import {
+  formatJobDate,
+  formatJobDateTime,
+  formatJobSalary,
+  type JobApplication
+} from '~/utils/job-applications'
 
 const route = useRoute()
 const router = useRouter()
@@ -35,45 +22,6 @@ const errorMessage = ref('')
 const { data: job, error } = await useFetch<JobApplication>(
   () => `/api/jobs/${id.value}`
 )
-
-const formatDate = (value: string | null) => {
-  if (!value) {
-    return 'Not set'
-  }
-
-  return new Intl.DateTimeFormat('en', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(new Date(value))
-}
-
-const formatSalary = (value: JobApplication) => {
-  if (!value.salaryMin && !value.salaryMax) {
-    return 'Salary not listed'
-  }
-
-  const formatter = new Intl.NumberFormat('en', {
-    style: 'currency',
-    currency: value.currency ?? 'USD',
-    maximumFractionDigits: 0
-  })
-
-  if (value.salaryMin && value.salaryMax) {
-    return `${formatter.format(value.salaryMin)} - ${formatter.format(value.salaryMax)}`
-  }
-
-  return formatter.format(value.salaryMin ?? value.salaryMax ?? 0)
-}
-
-const formatDateTime = (value: string) =>
-  new Intl.DateTimeFormat('en', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(value))
 
 const deleteJob = async () => {
   deletePending.value = true
@@ -229,7 +177,7 @@ const updateStatus = async (status: JobApplicationStatus) => {
             <div class="rounded-lg border border-default bg-elevated p-4">
               <p class="text-xs font-medium uppercase text-muted">Salary</p>
               <p class="mt-2 text-sm text-highlighted">
-                {{ formatSalary(job) }}
+                {{ formatJobSalary(job) }}
               </p>
             </div>
             <div class="rounded-lg border border-default bg-elevated p-4">
@@ -244,10 +192,10 @@ const updateStatus = async (status: JobApplicationStatus) => {
             <div class="rounded-lg border border-default bg-elevated p-4">
               <p class="text-xs font-medium uppercase text-muted">Follow-up</p>
               <p class="mt-2 text-sm text-highlighted">
-                {{ formatDate(job.nextFollowUpAt) }}
+                {{ formatJobDate(job.nextFollowUpAt) }}
               </p>
               <p class="mt-1 text-xs text-muted">
-                Applied {{ formatDate(job.appliedAt) }}
+                Applied {{ formatJobDate(job.appliedAt) }}
               </p>
             </div>
           </div>
@@ -275,13 +223,13 @@ const updateStatus = async (status: JobApplicationStatus) => {
             <div class="rounded-lg border border-default bg-elevated p-4">
               <p class="text-xs font-medium uppercase text-muted">Created</p>
               <p class="mt-2 text-sm text-highlighted">
-                {{ formatDateTime(job.createdAt) }}
+                {{ formatJobDateTime(job.createdAt) }}
               </p>
             </div>
             <div class="rounded-lg border border-default bg-elevated p-4">
               <p class="text-xs font-medium uppercase text-muted">Updated</p>
               <p class="mt-2 text-sm text-highlighted">
-                {{ formatDateTime(job.updatedAt) }}
+                {{ formatJobDateTime(job.updatedAt) }}
               </p>
             </div>
           </div>

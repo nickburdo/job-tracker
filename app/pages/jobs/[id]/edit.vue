@@ -1,22 +1,5 @@
 <script setup lang="ts">
-import type { JobApplicationStatus } from '~/utils/job-statuses'
-
-type JobApplication = {
-  id: string
-  company: string
-  position: string
-  vacancyUrl: string
-  status: JobApplicationStatus
-  source: string
-  salaryMin: number | null
-  salaryMax: number | null
-  currency: string | null
-  location: string | null
-  remoteType: string | null
-  notes: string | null
-  appliedAt: string | null
-  nextFollowUpAt: string | null
-}
+import { toDateInput, type JobApplication } from '~/utils/job-applications'
 
 const route = useRoute()
 const router = useRouter()
@@ -29,14 +12,6 @@ const errorMessage = ref('')
 const { data: job, error } = await useFetch<JobApplication>(
   () => `/api/jobs/${id.value}`
 )
-
-const toDateInput = (value: string | null) => {
-  if (!value) {
-    return ''
-  }
-
-  return value.slice(0, 10)
-}
 
 const initialValue = computed(() => {
   if (!job.value) {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { toDateInput, type JobApplication } from '~/utils/job-applications';
-import DeleteJob from '~/components/jobs/DeleteJob.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -80,7 +79,7 @@ const updateJob = async (value: Record<string, unknown>) => {
           >
             View
           </UButton>
-          <DeleteJob :job-id="id" />
+          <JobsDeleteJob :job-id="id" />
         </div>
       </div>
 

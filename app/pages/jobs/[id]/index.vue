@@ -10,7 +10,6 @@ import {
   formatJobSalary,
   type JobApplication,
 } from '~/utils/job-applications';
-import DeleteJob from '~/components/jobs/DeleteJob.vue';
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
@@ -70,7 +69,7 @@ const updateStatus = async (status: JobApplicationStatus) => {
             Edit
           </UButton>
 
-          <DeleteJob :job-id="job.id" />
+          <JobsDeleteJob :job-id="job.id" />
         </div>
       </div>
 

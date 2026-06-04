@@ -17,6 +17,7 @@
     "postinstall": "nuxt prepare && prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "eslint": "^9.39.4",
     "prettier": "^3.8.3",
     "prisma": "^7.8.0",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
 }

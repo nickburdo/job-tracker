@@ -1,75 +1,163 @@
-# Nuxt Minimal Starter
+# Job Tracker
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Small Nuxt app for tracking job applications, interview stages, offers, rejections, notes, salaries, and follow-ups.
+
+## Stack
+
+- Nuxt 4
+- Vue 3
+- Nuxt UI 4
+- Pinia
+- Prisma 7
+- SQLite
+- TypeScript
+- ESLint
+- Prettier
+
+## Requirements
+
+- Node `>=24 <25`
+- npm
+
+If you use `nvm`, run:
+
+```bash
+nvm use
+```
+
+The expected Node version is stored in `.nvmrc`.
 
 ## Setup
 
-Make sure to install dependencies:
+Install dependencies:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Create local env file:
 
 ```bash
-# npm
+cp .env.example .env
+```
+
+Generate Prisma client:
+
+```bash
+npm run prisma:generate
+```
+
+Create/update the local SQLite database:
+
+```bash
+npm run prisma:migrate
+```
+
+Optional demo data:
+
+```bash
+npm run prisma:seed
+```
+
+## Development
+
+Start the dev server:
+
+```bash
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+Open:
 
-Build the application for production:
+```text
+http://localhost:3000
+```
+
+## Checks
+
+Format files:
 
 ```bash
-# npm
+npm run format
+```
+
+Check formatting:
+
+```bash
+npm run format:check
+```
+
+Lint:
+
+```bash
+npm run lint
+```
+
+Build:
+
+```bash
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
 ```
 
-Locally preview production build:
+## Prisma
+
+Generate client:
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+npm run prisma:generate
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Create a migration and apply it locally:
+
+```bash
+npm run prisma:migrate
+```
+
+Seed demo data:
+
+```bash
+npm run prisma:seed
+```
+
+Open Prisma Studio:
+
+```bash
+npm run prisma:studio
+```
+
+## Project Structure
+
+Detailed structure is documented in:
+
+```text
+docs/project-structure.md
+```
+
+Status meanings and how to change them are documented in:
+
+```text
+docs/job-application-statuses.md
+```
+
+## Git Notes
+
+Local/generated files are ignored:
+
+- `.env`
+- `dev.db`
+- `generated/`
+- `.nuxt/`
+- `.output/`
+- `node_modules/`
+- IDE metadata
+
+Before pushing to GitHub, run:
+
+```bash
+npm run format:check
+npm run lint
+npm run build
+git status
+```
+
+Only source files, docs, migrations, and lockfiles should be committed.

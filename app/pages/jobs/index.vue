@@ -294,10 +294,11 @@ const formatAppliedDate = (value: string | null) => {
         </div>
 
         <div v-else class="overflow-hidden rounded-lg border border-default">
-          <div
+          <NuxtLink
             v-for="job in jobList"
             :key="job.id"
-            class="grid gap-4 border-b border-default bg-default p-4 last:border-b-0 lg:grid-cols-[1.2fr_170px_170px_160px]"
+            :to="`/jobs/${job.id}`"
+            class="grid gap-4 border-b border-default bg-default p-4 transition-colors last:border-b-0 hover:bg-elevated focus:outline-none focus-visible:bg-elevated lg:grid-cols-[1.2fr_170px_170px_160px]"
           >
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
@@ -334,26 +335,6 @@ const formatAppliedDate = (value: string | null) => {
             </div>
 
             <div>
-              <div class="mb-3 flex justify-end gap-2">
-                <UButton
-                  :to="`/jobs/${job.id}`"
-                  icon="i-lucide-eye"
-                  size="xs"
-                  color="neutral"
-                  variant="ghost"
-                >
-                  View
-                </UButton>
-                <UButton
-                  :to="`/jobs/${job.id}/edit`"
-                  icon="i-lucide-pencil"
-                  size="xs"
-                  color="neutral"
-                  variant="outline"
-                >
-                  Edit
-                </UButton>
-              </div>
               <p class="text-xs font-medium uppercase text-muted">Follow-up</p>
               <p
                 class="mt-1 text-sm"
@@ -369,7 +350,7 @@ const formatAppliedDate = (value: string | null) => {
                 {{ formatAppliedDate(job.appliedAt) }}
               </p>
             </div>
-          </div>
+          </NuxtLink>
         </div>
       </div>
     </UContainer>

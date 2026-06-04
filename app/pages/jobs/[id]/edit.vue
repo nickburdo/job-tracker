@@ -78,89 +78,87 @@ const deleteJob = async () => {
 </script>
 
 <template>
-  <main>
-    <UContainer class="py-8">
-      <div class="mx-auto max-w-3xl">
-        <div
-          class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
-        >
-          <div>
-            <h1 class="text-2xl font-semibold tracking-tight text-highlighted">
-              Edit application
-            </h1>
-            <p class="mt-1 text-sm text-muted">
-              Update status, notes, dates, and compensation details.
-            </p>
-          </div>
-
-          <div class="flex gap-2">
-            <UButton
-              :to="`/jobs/${id}`"
-              color="neutral"
-              variant="outline"
-              icon="i-lucide-eye"
-            >
-              View
-            </UButton>
-            <UButton
-              color="error"
-              variant="outline"
-              icon="i-lucide-trash-2"
-              @click="showDeleteConfirm = true"
-            >
-              Delete
-            </UButton>
-          </div>
-        </div>
-
-        <div
-          v-if="error"
-          class="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
-        >
-          Failed to load application.
-        </div>
-
-        <div
-          v-else-if="initialValue"
-          class="rounded-lg border border-default bg-elevated p-5"
-        >
-          <JobsJobForm
-            :initial-value="initialValue"
-            submit-label="Save changes"
-            :pending="pending"
-            :error-message="errorMessage"
-            @submit="updateJob"
-          />
-        </div>
-
-        <div
-          v-if="showDeleteConfirm"
-          class="mt-4 rounded-lg border border-error/30 bg-error/10 p-4"
-        >
-          <h2 class="text-sm font-semibold text-error">Delete application?</h2>
+  <UContainer class="py-8">
+    <div class="mx-auto max-w-3xl">
+      <div
+        class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+      >
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight text-highlighted">
+            Edit application
+          </h1>
           <p class="mt-1 text-sm text-muted">
-            This removes the application permanently.
+            Update status, notes, dates, and compensation details.
           </p>
-          <div class="mt-4 flex justify-end gap-2">
-            <UButton
-              color="neutral"
-              variant="outline"
-              :disabled="deletePending"
-              @click="showDeleteConfirm = false"
-            >
-              Cancel
-            </UButton>
-            <UButton
-              color="error"
-              icon="i-lucide-trash-2"
-              :loading="deletePending"
-              @click="deleteJob"
-            >
-              Delete
-            </UButton>
-          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <UButton
+            :to="`/jobs/${id}`"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-eye"
+          >
+            View
+          </UButton>
+          <UButton
+            color="error"
+            variant="outline"
+            icon="i-lucide-trash-2"
+            @click="showDeleteConfirm = true"
+          >
+            Delete
+          </UButton>
         </div>
       </div>
-    </UContainer>
-  </main>
+
+      <div
+        v-if="error"
+        class="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
+      >
+        Failed to load application.
+      </div>
+
+      <div
+        v-else-if="initialValue"
+        class="rounded-lg border border-default bg-elevated p-5"
+      >
+        <JobsJobForm
+          :initial-value="initialValue"
+          submit-label="Save changes"
+          :pending="pending"
+          :error-message="errorMessage"
+          @submit="updateJob"
+        />
+      </div>
+
+      <div
+        v-if="showDeleteConfirm"
+        class="mt-4 rounded-lg border border-error/30 bg-error/10 p-4"
+      >
+        <h2 class="text-sm font-semibold text-error">Delete application?</h2>
+        <p class="mt-1 text-sm text-muted">
+          This removes the application permanently.
+        </p>
+        <div class="mt-4 flex justify-end gap-2">
+          <UButton
+            color="neutral"
+            variant="outline"
+            :disabled="deletePending"
+            @click="showDeleteConfirm = false"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            color="error"
+            icon="i-lucide-trash-2"
+            :loading="deletePending"
+            @click="deleteJob"
+          >
+            Delete
+          </UButton>
+        </div>
+      </div>
+    </div>
+  </UContainer>
 </template>

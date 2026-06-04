@@ -24,27 +24,25 @@ const createJob = async (value: Record<string, unknown>) => {
 </script>
 
 <template>
-  <main>
-    <UContainer class="py-8">
-      <div class="mx-auto max-w-3xl">
-        <div class="mb-6">
-          <h1 class="text-2xl font-semibold tracking-tight text-highlighted">
-            New application
-          </h1>
-          <p class="mt-1 text-sm text-muted">
-            Add a job application to the tracker.
-          </p>
-        </div>
-
-        <div class="rounded-lg border border-default bg-elevated p-5">
-          <JobsJobForm
-            submit-label="Create application"
-            :pending="pending"
-            :error-message="errorMessage"
-            @submit="createJob"
-          />
-        </div>
+  <UContainer class="py-8">
+    <div class="mx-auto max-w-3xl">
+      <div class="mb-6">
+        <h1 class="text-2xl font-semibold tracking-tight text-highlighted">
+          New application
+        </h1>
+        <p class="mt-1 text-sm text-muted">
+          Add a job application to the tracker.
+        </p>
       </div>
-    </UContainer>
-  </main>
+
+      <div class="rounded-lg border border-default bg-elevated p-5">
+        <JobsJobForm
+          submit-label="Create application"
+          :pending="pending"
+          :error-message="errorMessage"
+          @submit="createJob"
+        />
+      </div>
+    </div>
+  </UContainer>
 </template>

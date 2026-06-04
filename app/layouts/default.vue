@@ -29,9 +29,9 @@ import MainMenu from '~/components/layouts/default/MainMenu.vue';
       </UContainer>
     </header>
 
-    <div class="grow pt-16 pb-11 md:pb-0">
+    <main class="grow pt-16 pb-11 md:pb-0">
       <slot />
-    </div>
+    </main>
 
     <footer
       class="fixed bottom-0 left-0 right-0 md:hidden border-t border-default bg-default/95 backdrop-blur p-2"

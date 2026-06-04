@@ -1,5 +1,10 @@
 <script setup lang="ts">
 const navigation = useNavigationStore();
+const route = useRoute();
+
+const isActive = (to: string) => {
+  return route.path === to || route.path.startsWith(`${to}/`);
+};
 </script>
 
 <template>
@@ -14,7 +19,7 @@ const navigation = useNavigationStore();
       variant="ghost"
       color="neutral"
       size="sm"
-      active-class="bg-primary-100 text-primary-700"
+      :class="{ 'bg-primary-100 text-primary-700': isActive(item.to) }"
     >
       {{ item.label }}
     </UButton>

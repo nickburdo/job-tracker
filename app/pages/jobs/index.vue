@@ -28,10 +28,22 @@ type JobApplication = {
   updatedAt: string
 }
 
+const allStatusesValue = 'ALL_STATUSES'
+const allCompaniesValue = 'ALL_COMPANIES'
+const interviewStatuses: JobApplicationStatus[] = [
+  'SCREENING',
+  'TECHNICAL_INTERVIEW',
+  'FINAL_INTERVIEW'
+]
+
 const statusOptions = [
   {
     label: 'All statuses',
-    value: ''
+    value: allStatusesValue
+  },
+  {
+    label: 'Interviews',
+    value: 'INTERVIEWS'
   },
   {
     label: 'Saved',
@@ -68,31 +80,57 @@ const statusOptions = [
 ]
 
 const search = ref('')
-const selectedStatus = ref('')
-const selectedCompany = ref('')
-
-const query = computed(() => ({
-  ...(search.value ? { search: search.value } : {}),
-  ...(selectedStatus.value ? { status: selectedStatus.value } : {}),
-  ...(selectedCompany.value ? { company: selectedCompany.value } : {})
-}))
+const selectedStatus = ref(allStatusesValue)
+const selectedCompany = ref(allCompaniesValue)
 
 const {
-  data: jobs,
+  data: allJobs,
   pending,
   error
-} = await useFetch<JobApplication[]>('/api/jobs', {
-  query
-})
+} = await useFetch<JobApplication[]>('/api/jobs')
 
-const jobList = computed(() => jobs.value ?? [])
+const normalizedSearch = computed(() => search.value.trim().toLowerCase())
+
+const matchesSearch = (job: JobApplication) => {
+  if (!normalizedSearch.value) {
+    return true
+  }
+
+  return [job.company, job.position, job.source, job.notes]
+    .filter(Boolean)
+    .some((value) => value?.toLowerCase().includes(normalizedSearch.value))
+}
+
+const matchesCompany = (job: JobApplication) =>
+  selectedCompany.value === allCompaniesValue ||
+  job.company === selectedCompany.value
+
+const matchesStatus = (job: JobApplication) => {
+  if (selectedStatus.value === allStatusesValue) {
+    return true
+  }
+
+  if (selectedStatus.value === 'INTERVIEWS') {
+    return interviewStatuses.includes(job.status)
+  }
+
+  return job.status === selectedStatus.value
+}
+
+const baseList = computed(() =>
+  (allJobs.value ?? []).filter(
+    (job) => matchesSearch(job) && matchesCompany(job)
+  )
+)
+
+const jobList = computed(() => baseList.value.filter(matchesStatus))
 
 const companyOptions = computed(() => [
   {
     label: 'All companies',
-    value: ''
+    value: allCompaniesValue
   },
-  ...Array.from(new Set(jobList.value.map((job) => job.company)))
+  ...Array.from(new Set((allJobs.value ?? []).map((job) => job.company)))
     .sort((a, b) => a.localeCompare(b))
     .map((company) => ({
       label: company,
@@ -101,12 +139,12 @@ const companyOptions = computed(() => [
 ])
 
 const stats = computed(() => {
-  const total = jobList.value.length
-  const interviews = jobList.value.filter((job) =>
-    ['SCREENING', 'TECHNICAL_INTERVIEW', 'FINAL_INTERVIEW'].includes(job.status)
+  const total = baseList.value.length
+  const interviews = baseList.value.filter((job) =>
+    interviewStatuses.includes(job.status)
   ).length
-  const offers = jobList.value.filter((job) => job.status === 'OFFER').length
-  const rejections = jobList.value.filter(
+  const offers = baseList.value.filter((job) => job.status === 'OFFER').length
+  const rejections = baseList.value.filter(
     (job) => job.status === 'REJECTED'
   ).length
 
@@ -192,6 +230,13 @@ const formatAppliedDate = (value: string | null) => {
 
   return `Applied ${formatDate(value)}`
 }
+
+const statCardClass = (value: string) => [
+  'rounded-lg border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+  selectedStatus.value === value
+    ? 'border-primary bg-primary/10'
+    : 'border-default bg-elevated hover:bg-muted'
+]
 </script>
 
 <template>
@@ -216,30 +261,46 @@ const formatAppliedDate = (value: string | null) => {
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="rounded-lg border border-default bg-elevated p-4">
+          <button
+            type="button"
+            :class="statCardClass(allStatusesValue)"
+            @click="selectedStatus = allStatusesValue"
+          >
             <p class="text-sm text-muted">Total</p>
             <p class="mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.total }}
             </p>
-          </div>
-          <div class="rounded-lg border border-default bg-elevated p-4">
+          </button>
+          <button
+            type="button"
+            :class="statCardClass('INTERVIEWS')"
+            @click="selectedStatus = 'INTERVIEWS'"
+          >
             <p class="text-sm text-muted">Interviews</p>
             <p class="mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.interviews }}
             </p>
-          </div>
-          <div class="rounded-lg border border-default bg-elevated p-4">
+          </button>
+          <button
+            type="button"
+            :class="statCardClass('OFFER')"
+            @click="selectedStatus = 'OFFER'"
+          >
             <p class="text-sm text-muted">Offers</p>
             <p class="mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.offers }}
             </p>
-          </div>
-          <div class="rounded-lg border border-default bg-elevated p-4">
+          </button>
+          <button
+            type="button"
+            :class="statCardClass('REJECTED')"
+            @click="selectedStatus = 'REJECTED'"
+          >
             <p class="text-sm text-muted">Rejections</p>
             <p class="mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.rejections }}
             </p>
-          </div>
+          </button>
         </div>
 
         <div

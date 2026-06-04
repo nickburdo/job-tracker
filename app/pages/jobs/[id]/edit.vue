@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { toDateInput, type JobApplication } from '~/utils/job-applications';
+import DeleteJob from '~/components/jobs/DeleteJob.vue';
 
 const route = useRoute();
 const router = useRouter();
 const id = computed(() => String(route.params.id));
 const pending = ref(false);
-const deletePending = ref(false);
-const showDeleteConfirm = ref(false);
 const errorMessage = ref('');
 
 const { data: job, error } = await useFetch<JobApplication>(
@@ -45,7 +44,7 @@ const updateJob = async (value: Record<string, unknown>) => {
       body: value,
     });
 
-    await router.push('/jobs');
+    await router.push(`/jobs/${id.value}`);
   } catch (updateError) {
     errorMessage.value =
       updateError instanceof Error
@@ -53,26 +52,6 @@ const updateJob = async (value: Record<string, unknown>) => {
         : 'Failed to update application';
   } finally {
     pending.value = false;
-  }
-};
-
-const deleteJob = async () => {
-  deletePending.value = true;
-  errorMessage.value = '';
-
-  try {
-    await $fetch(`/api/jobs/${id.value}`, {
-      method: 'DELETE',
-    });
-
-    await router.push('/jobs');
-  } catch (deleteError) {
-    errorMessage.value =
-      deleteError instanceof Error
-        ? deleteError.message
-        : 'Failed to delete application';
-  } finally {
-    deletePending.value = false;
   }
 };
 </script>
@@ -101,14 +80,7 @@ const deleteJob = async () => {
           >
             View
           </UButton>
-          <UButton
-            color="error"
-            variant="outline"
-            icon="i-lucide-trash-2"
-            @click="showDeleteConfirm = true"
-          >
-            Delete
-          </UButton>
+          <DeleteJob :job-id="id" />
         </div>
       </div>
 
@@ -130,34 +102,6 @@ const deleteJob = async () => {
           :error-message="errorMessage"
           @submit="updateJob"
         />
-      </div>
-
-      <div
-        v-if="showDeleteConfirm"
-        class="mt-4 rounded-lg border border-error/30 bg-error/10 p-4"
-      >
-        <h2 class="text-sm font-semibold text-error">Delete application?</h2>
-        <p class="mt-1 text-sm text-muted">
-          This removes the application permanently.
-        </p>
-        <div class="mt-4 flex justify-end gap-2">
-          <UButton
-            color="neutral"
-            variant="outline"
-            :disabled="deletePending"
-            @click="showDeleteConfirm = false"
-          >
-            Cancel
-          </UButton>
-          <UButton
-            color="error"
-            icon="i-lucide-trash-2"
-            :loading="deletePending"
-            @click="deleteJob"
-          >
-            Delete
-          </UButton>
-        </div>
       </div>
     </div>
   </UContainer>

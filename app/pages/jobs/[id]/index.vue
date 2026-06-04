@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {
+  type JobApplicationStatus,
   jobStatusColors,
   jobStatusOptions,
-  type JobApplicationStatus,
 } from '~/utils/job-statuses';
 import {
   formatJobDate,
@@ -10,38 +10,16 @@ import {
   formatJobSalary,
   type JobApplication,
 } from '~/utils/job-applications';
+import DeleteJob from '~/components/jobs/DeleteJob.vue';
 
 const route = useRoute();
-const router = useRouter();
 const id = computed(() => String(route.params.id));
-const deletePending = ref(false);
 const statusPending = ref(false);
-const showDeleteConfirm = ref(false);
 const errorMessage = ref('');
 
 const { data: job, error } = await useFetch<JobApplication>(
   () => `/api/jobs/${id.value}`,
 );
-
-const deleteJob = async () => {
-  deletePending.value = true;
-  errorMessage.value = '';
-
-  try {
-    await $fetch(`/api/jobs/${id.value}`, {
-      method: 'DELETE',
-    });
-
-    await router.push('/jobs');
-  } catch (deleteError) {
-    errorMessage.value =
-      deleteError instanceof Error
-        ? deleteError.message
-        : 'Failed to delete application';
-  } finally {
-    deletePending.value = false;
-  }
-};
 
 const updateStatus = async (status: JobApplicationStatus) => {
   if (!job.value || job.value.status === status) {
@@ -52,14 +30,12 @@ const updateStatus = async (status: JobApplicationStatus) => {
   errorMessage.value = '';
 
   try {
-    const updatedJob = await $fetch<JobApplication>(`/api/jobs/${id.value}`, {
+    job.value = await $fetch<JobApplication>(`/api/jobs/${id.value}`, {
       method: 'PATCH',
       body: {
         status,
       },
     });
-
-    job.value = updatedJob;
   } catch (statusError) {
     errorMessage.value =
       statusError instanceof Error
@@ -74,15 +50,29 @@ const updateStatus = async (status: JobApplicationStatus) => {
 <template>
   <UContainer class="py-8">
     <div class="mx-auto max-w-4xl">
-      <UButton
-        to="/jobs"
-        color="neutral"
-        variant="ghost"
-        icon="i-lucide-arrow-left"
-        class="mb-4"
-      >
-        Applications
-      </UButton>
+      <div class="flex justify-between items-start md:items-center">
+        <UButton
+          to="/jobs"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-arrow-left"
+          class="mb-4"
+        >
+          Applications
+        </UButton>
+        <div v-if="job" class="flex gap-2">
+          <UButton
+            :to="`/jobs/${job.id}/edit`"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-pencil"
+          >
+            Edit
+          </UButton>
+
+          <DeleteJob :job-id="job.id" />
+        </div>
+      </div>
 
       <div
         v-if="error"
@@ -104,7 +94,7 @@ const updateStatus = async (status: JobApplicationStatus) => {
             </p>
           </div>
 
-          <div class="flex flex-col gap-2 sm:flex-row">
+          <div class="mt-2">
             <USelectMenu
               :model-value="job.status"
               :items="jobStatusOptions"
@@ -114,22 +104,6 @@ const updateStatus = async (status: JobApplicationStatus) => {
               :disabled="statusPending"
               @update:model-value="updateStatus"
             />
-            <UButton
-              :to="`/jobs/${job.id}/edit`"
-              color="neutral"
-              variant="outline"
-              icon="i-lucide-pencil"
-            >
-              Edit
-            </UButton>
-            <UButton
-              color="error"
-              variant="outline"
-              icon="i-lucide-trash-2"
-              @click="showDeleteConfirm = true"
-            >
-              Delete
-            </UButton>
           </div>
         </div>
 
@@ -138,34 +112,6 @@ const updateStatus = async (status: JobApplicationStatus) => {
           class="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
         >
           {{ errorMessage }}
-        </div>
-
-        <div
-          v-if="showDeleteConfirm"
-          class="rounded-lg border border-error/30 bg-error/10 p-4"
-        >
-          <h2 class="text-sm font-semibold text-error">Delete application?</h2>
-          <p class="mt-1 text-sm text-muted">
-            This removes the application permanently.
-          </p>
-          <div class="mt-4 flex justify-end gap-2">
-            <UButton
-              color="neutral"
-              variant="outline"
-              :disabled="deletePending"
-              @click="showDeleteConfirm = false"
-            >
-              Cancel
-            </UButton>
-            <UButton
-              color="error"
-              icon="i-lucide-trash-2"
-              :loading="deletePending"
-              @click="deleteJob"
-            >
-              Delete
-            </UButton>
-          </div>
         </div>
 
         <div class="grid gap-4 md:grid-cols-3">

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   jobStatusColors,
-  jobStatusLabels,
   jobStatusOptions,
   type JobApplicationStatus
 } from '~/utils/job-statuses'
@@ -150,16 +149,11 @@ const updateStatus = async (status: JobApplicationStatus) => {
             class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
           >
             <div>
-              <div class="flex flex-wrap items-center gap-4">
-                <h1
-                  class="text-2xl font-semibold tracking-tight text-highlighted"
-                >
-                  {{ job.position }}
-                </h1>
-                <UBadge :color="jobStatusColors[job.status]" variant="subtle">
-                  {{ jobStatusLabels[job.status] }}
-                </UBadge>
-              </div>
+              <h1
+                class="text-2xl font-semibold tracking-tight text-highlighted"
+              >
+                {{ job.position }}
+              </h1>
               <p class="mt-1 text-sm text-muted">
                 {{ job.company }} / {{ job.source }}
               </p>
@@ -171,6 +165,7 @@ const updateStatus = async (status: JobApplicationStatus) => {
                 :items="jobStatusOptions"
                 value-key="value"
                 class="w-full sm:w-56"
+                :color="jobStatusColors[job.status]"
                 :disabled="statusPending"
                 @update:model-value="updateStatus"
               />

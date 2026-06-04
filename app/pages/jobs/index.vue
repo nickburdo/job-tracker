@@ -362,7 +362,7 @@ const statCardClass = (value: string) => [
             class="grid gap-4 border-b border-default bg-default p-4 transition-colors last:border-b-0 hover:bg-elevated focus:outline-none focus-visible:bg-elevated lg:grid-cols-[1.2fr_170px_170px_160px]"
           >
             <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
+              <div class="flex flex-wrap items-center gap-4">
                 <h2 class="truncate text-base font-semibold text-highlighted">
                   {{ job.position }}
                 </h2>

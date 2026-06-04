@@ -150,7 +150,7 @@ const deleteJob = async () => {
             class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
           >
             <div>
-              <div class="flex flex-wrap items-center gap-2">
+              <div class="flex flex-wrap items-center gap-4">
                 <h1
                   class="text-2xl font-semibold tracking-tight text-highlighted"
                 >

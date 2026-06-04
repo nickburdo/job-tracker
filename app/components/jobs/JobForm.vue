@@ -70,9 +70,68 @@ const form = reactive<JobFormValue>({
   nextFollowUpAt: props.initialValue?.nextFollowUpAt ?? ''
 })
 
+const fieldErrors = ref<Partial<Record<keyof JobFormValue, string>>>({})
+
+const clearErrors = () => {
+  fieldErrors.value = {}
+}
+
+const isValidUrl = (value: string) => {
+  try {
+    const url = new URL(value)
+
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+const validateForm = () => {
+  clearErrors()
+
+  if (!form.company.trim()) {
+    fieldErrors.value.company = 'Company is required'
+  }
+
+  if (!form.position.trim()) {
+    fieldErrors.value.position = 'Position is required'
+  }
+
+  if (!form.vacancyUrl.trim()) {
+    fieldErrors.value.vacancyUrl = 'Vacancy URL is required'
+  } else if (!isValidUrl(form.vacancyUrl)) {
+    fieldErrors.value.vacancyUrl = 'Enter a valid http or https URL'
+  }
+
+  if (!form.source.trim()) {
+    fieldErrors.value.source = 'Source is required'
+  }
+
+  if (
+    form.salaryMin !== null &&
+    form.salaryMax !== null &&
+    form.salaryMin > form.salaryMax
+  ) {
+    fieldErrors.value.salaryMin = 'Min salary cannot exceed max salary'
+    fieldErrors.value.salaryMax = 'Max salary cannot be lower than min salary'
+  }
+
+  return Object.keys(fieldErrors.value).length === 0
+}
+
 const onSubmit = () => {
+  if (!validateForm()) {
+    return
+  }
+
   emit('submit', {
     ...form,
+    company: form.company.trim(),
+    position: form.position.trim(),
+    vacancyUrl: form.vacancyUrl.trim(),
+    source: form.source.trim(),
+    currency: form.currency.trim(),
+    location: form.location.trim(),
     remoteType: form.remoteType === 'NOT_SET' ? '' : form.remoteType
   })
 }
@@ -88,7 +147,7 @@ const onSubmit = () => {
     </div>
 
     <div class="grid gap-4 lg:grid-cols-2">
-      <UFormField label="Company" required>
+      <UFormField label="Company" :error="fieldErrors.company" required>
         <UInput
           v-model="form.company"
           class="w-full"
@@ -96,7 +155,7 @@ const onSubmit = () => {
         />
       </UFormField>
 
-      <UFormField label="Position" required>
+      <UFormField label="Position" :error="fieldErrors.position" required>
         <UInput
           v-model="form.position"
           class="w-full"
@@ -104,7 +163,7 @@ const onSubmit = () => {
         />
       </UFormField>
 
-      <UFormField label="Vacancy URL" required>
+      <UFormField label="Vacancy URL" :error="fieldErrors.vacancyUrl" required>
         <UInput
           v-model="form.vacancyUrl"
           class="w-full"
@@ -112,7 +171,7 @@ const onSubmit = () => {
         />
       </UFormField>
 
-      <UFormField label="Source" required>
+      <UFormField label="Source" :error="fieldErrors.source" required>
         <UInput v-model="form.source" class="w-full" placeholder="LinkedIn" />
       </UFormField>
 
@@ -146,7 +205,7 @@ const onSubmit = () => {
         <UInput v-model="form.currency" class="w-full" placeholder="USD" />
       </UFormField>
 
-      <UFormField label="Salary min">
+      <UFormField label="Salary min" :error="fieldErrors.salaryMin">
         <UInput
           v-model.number="form.salaryMin"
           class="w-full"
@@ -155,7 +214,7 @@ const onSubmit = () => {
         />
       </UFormField>
 
-      <UFormField label="Salary max">
+      <UFormField label="Salary max" :error="fieldErrors.salaryMax">
         <UInput
           v-model.number="form.salaryMax"
           class="w-full"

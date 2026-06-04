@@ -1,7 +1,7 @@
 export default defineEventHandler(async (event) => {
   const id = getJobId(event)
   const payload = await readBody(event)
-  const data = parseJobPayload(payload)
+  const data = parseJobUpdatePayload(payload)
 
   const existingJob = await prisma.jobApplication.findUnique({
     where: {

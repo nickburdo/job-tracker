@@ -210,7 +210,9 @@ const formatAppliedDate = (value: string | null) => {
             </p>
           </div>
 
-          <UButton icon="i-lucide-plus"> New application </UButton>
+          <UButton to="/jobs/new" icon="i-lucide-plus">
+            New application
+          </UButton>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -307,7 +309,7 @@ const formatAppliedDate = (value: string | null) => {
                 </UBadge>
               </div>
               <p class="mt-1 text-sm text-muted">
-                {{ job.company }} · {{ job.source }}
+                {{ job.company }} / {{ job.source }}
               </p>
               <p v-if="job.notes" class="mt-2 line-clamp-2 text-sm text-muted">
                 {{ job.notes }}
@@ -332,6 +334,17 @@ const formatAppliedDate = (value: string | null) => {
             </div>
 
             <div>
+              <div class="mb-3 flex justify-end">
+                <UButton
+                  :to="`/jobs/${job.id}/edit`"
+                  icon="i-lucide-pencil"
+                  size="xs"
+                  color="neutral"
+                  variant="outline"
+                >
+                  Edit
+                </UButton>
+              </div>
               <p class="text-xs font-medium uppercase text-muted">Follow-up</p>
               <p
                 class="mt-1 text-sm"

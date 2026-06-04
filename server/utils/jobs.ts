@@ -103,6 +103,23 @@ const parseStatus = (value: unknown) => {
   return value as JobApplicationStatus
 }
 
+const parseOptionalStatus = (value: unknown) => {
+  if (
+    typeof value !== 'string' ||
+    !jobStatuses.has(value as JobApplicationStatus)
+  ) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'status is invalid'
+    })
+  }
+
+  return value as JobApplicationStatus
+}
+
+const hasField = (payload: JobPayload, field: keyof JobPayload) =>
+  Object.prototype.hasOwnProperty.call(payload, field)
+
 export const parseJobPayload = (payload: JobPayload) => {
   const salaryMin = optionalNumber(payload.salaryMin, 'salaryMin')
   const salaryMax = optionalNumber(payload.salaryMax, 'salaryMax')
@@ -129,6 +146,84 @@ export const parseJobPayload = (payload: JobPayload) => {
     appliedAt: optionalDate(payload.appliedAt, 'appliedAt'),
     nextFollowUpAt: optionalDate(payload.nextFollowUpAt, 'nextFollowUpAt')
   }
+}
+
+export const parseJobUpdatePayload = (payload: JobPayload) => {
+  const data: Partial<ReturnType<typeof parseJobPayload>> = {}
+
+  if (hasField(payload, 'company')) {
+    data.company = requiredString(payload.company, 'company')
+  }
+
+  if (hasField(payload, 'position')) {
+    data.position = requiredString(payload.position, 'position')
+  }
+
+  if (hasField(payload, 'vacancyUrl')) {
+    data.vacancyUrl = requiredString(payload.vacancyUrl, 'vacancyUrl')
+  }
+
+  if (hasField(payload, 'status')) {
+    data.status = parseOptionalStatus(payload.status)
+  }
+
+  if (hasField(payload, 'source')) {
+    data.source = requiredString(payload.source, 'source')
+  }
+
+  if (hasField(payload, 'salaryMin')) {
+    data.salaryMin = optionalNumber(payload.salaryMin, 'salaryMin')
+  }
+
+  if (hasField(payload, 'salaryMax')) {
+    data.salaryMax = optionalNumber(payload.salaryMax, 'salaryMax')
+  }
+
+  if (
+    data.salaryMin !== undefined &&
+    data.salaryMax !== undefined &&
+    data.salaryMin !== null &&
+    data.salaryMax !== null &&
+    data.salaryMin > data.salaryMax
+  ) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'salaryMin cannot be greater than salaryMax'
+    })
+  }
+
+  if (hasField(payload, 'currency')) {
+    data.currency = optionalString(payload.currency)
+  }
+
+  if (hasField(payload, 'location')) {
+    data.location = optionalString(payload.location)
+  }
+
+  if (hasField(payload, 'remoteType')) {
+    data.remoteType = optionalString(payload.remoteType)
+  }
+
+  if (hasField(payload, 'notes')) {
+    data.notes = optionalString(payload.notes)
+  }
+
+  if (hasField(payload, 'appliedAt')) {
+    data.appliedAt = optionalDate(payload.appliedAt, 'appliedAt')
+  }
+
+  if (hasField(payload, 'nextFollowUpAt')) {
+    data.nextFollowUpAt = optionalDate(payload.nextFollowUpAt, 'nextFollowUpAt')
+  }
+
+  if (Object.keys(data).length === 0) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'No fields to update'
+    })
+  }
+
+  return data
 }
 
 export const getJobId = (event: Parameters<typeof getRouterParam>[0]) => {

@@ -48,7 +48,7 @@ const statusOptions = [
 ]
 
 const remoteTypeOptions = [
-  { label: 'Not set', value: '' },
+  { label: 'Not set', value: 'NOT_SET' },
   { label: 'Remote', value: 'Remote' },
   { label: 'Hybrid', value: 'Hybrid' },
   { label: 'On-site', value: 'On-site' }
@@ -64,14 +64,17 @@ const form = reactive<JobFormValue>({
   salaryMax: props.initialValue?.salaryMax ?? null,
   currency: props.initialValue?.currency ?? 'USD',
   location: props.initialValue?.location ?? '',
-  remoteType: props.initialValue?.remoteType ?? '',
+  remoteType: props.initialValue?.remoteType || 'NOT_SET',
   notes: props.initialValue?.notes ?? '',
   appliedAt: props.initialValue?.appliedAt ?? '',
   nextFollowUpAt: props.initialValue?.nextFollowUpAt ?? ''
 })
 
 const onSubmit = () => {
-  emit('submit', { ...form })
+  emit('submit', {
+    ...form,
+    remoteType: form.remoteType === 'NOT_SET' ? '' : form.remoteType
+  })
 }
 </script>
 
@@ -86,28 +89,38 @@ const onSubmit = () => {
 
     <div class="grid gap-4 lg:grid-cols-2">
       <UFormField label="Company" required>
-        <UInput v-model="form.company" placeholder="Northstar Labs" />
+        <UInput
+          v-model="form.company"
+          class="w-full"
+          placeholder="Northstar Labs"
+        />
       </UFormField>
 
       <UFormField label="Position" required>
-        <UInput v-model="form.position" placeholder="Frontend Engineer" />
+        <UInput
+          v-model="form.position"
+          class="w-full"
+          placeholder="Frontend Engineer"
+        />
       </UFormField>
 
       <UFormField label="Vacancy URL" required>
         <UInput
           v-model="form.vacancyUrl"
+          class="w-full"
           placeholder="https://example.com/jobs/frontend"
         />
       </UFormField>
 
       <UFormField label="Source" required>
-        <UInput v-model="form.source" placeholder="LinkedIn" />
+        <UInput v-model="form.source" class="w-full" placeholder="LinkedIn" />
       </UFormField>
 
       <UFormField label="Status">
         <USelectMenu
           v-model="form.status"
           :items="statusOptions"
+          class="w-full"
           value-key="value"
         />
       </UFormField>
@@ -116,42 +129,58 @@ const onSubmit = () => {
         <USelectMenu
           v-model="form.remoteType"
           :items="remoteTypeOptions"
+          class="w-full"
           value-key="value"
         />
       </UFormField>
 
       <UFormField label="Location">
-        <UInput v-model="form.location" placeholder="Remote, US" />
+        <UInput
+          v-model="form.location"
+          class="w-full"
+          placeholder="Remote, US"
+        />
       </UFormField>
 
       <UFormField label="Currency">
-        <UInput v-model="form.currency" placeholder="USD" />
+        <UInput v-model="form.currency" class="w-full" placeholder="USD" />
       </UFormField>
 
       <UFormField label="Salary min">
-        <UInput v-model.number="form.salaryMin" type="number" min="0" />
+        <UInput
+          v-model.number="form.salaryMin"
+          class="w-full"
+          type="number"
+          min="0"
+        />
       </UFormField>
 
       <UFormField label="Salary max">
-        <UInput v-model.number="form.salaryMax" type="number" min="0" />
+        <UInput
+          v-model.number="form.salaryMax"
+          class="w-full"
+          type="number"
+          min="0"
+        />
       </UFormField>
 
       <UFormField label="Applied date">
-        <UInput v-model="form.appliedAt" type="date" />
+        <UInput v-model="form.appliedAt" class="w-full" type="date" />
       </UFormField>
 
       <UFormField label="Next follow-up">
-        <UInput v-model="form.nextFollowUpAt" type="date" />
+        <UInput v-model="form.nextFollowUpAt" class="w-full" type="date" />
+      </UFormField>
+
+      <UFormField label="Notes" class="lg:col-span-2">
+        <UTextarea
+          v-model="form.notes"
+          class="w-full"
+          :rows="5"
+          placeholder="Recruiter notes, interview details, next actions"
+        />
       </UFormField>
     </div>
-
-    <UFormField label="Notes">
-      <UTextarea
-        v-model="form.notes"
-        :rows="5"
-        placeholder="Recruiter notes, interview details, next actions"
-      />
-    </UFormField>
 
     <div class="flex justify-end gap-3">
       <UButton to="/jobs" color="neutral" variant="outline">Cancel</UButton>

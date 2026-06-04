@@ -31,6 +31,8 @@ const emit = defineEmits<{
   submit: [value: JobFormValue];
 }>();
 
+const router = useRouter();
+
 const remoteTypeOptions = [
   { label: 'Not set', value: 'NOT_SET' },
   { label: 'Remote', value: 'Remote' },
@@ -118,6 +120,14 @@ const onSubmit = () => {
     location: form.location.trim(),
     remoteType: form.remoteType === 'NOT_SET' ? '' : form.remoteType,
   });
+};
+
+const handleCancel = () => {
+  if (window.history.length > 1) {
+    router.back();
+  } else {
+    router.push('/jobs');
+  }
 };
 </script>
 
@@ -226,7 +236,9 @@ const onSubmit = () => {
     </div>
 
     <div class="flex justify-end gap-3">
-      <UButton to="/jobs" color="neutral" variant="outline">Cancel</UButton>
+      <UButton color="neutral" variant="outline" @click="handleCancel">
+        Cancel
+      </UButton>
       <UButton type="submit" :loading="pending">
         {{ submitLabel }}
       </UButton>

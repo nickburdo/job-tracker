@@ -127,10 +127,6 @@ const statCardClass = (value: string) => [
               Track active applications, interview stages, and follow-ups.
             </p>
           </div>
-
-          <UButton to="/jobs/new" icon="i-lucide-plus">
-            New application
-          </UButton>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

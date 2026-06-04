@@ -1,10 +1,12 @@
 <script setup lang="ts">
-const navigation = useNavigationStore();
+import MainMenu from '~/components/layouts/default/MainMenu.vue';
 </script>
 
 <template>
   <div class="min-h-screen bg-default text-highlighted flex flex-col">
-    <header class="border-b border-default bg-default/95 backdrop-blur">
+    <header
+      class="fixed top-0 left-0 right-0 border-b border-default bg-default/95 backdrop-blur z-10"
+    >
       <UContainer class="flex h-16 items-center justify-between gap-6">
         <NuxtLink to="/" class="flex items-center gap-3">
           <span
@@ -17,22 +19,9 @@ const navigation = useNavigationStore();
           </span>
         </NuxtLink>
 
-        <nav
-          class="hidden items-center gap-1 md:flex"
-          aria-label="Primary navigation"
-        >
-          <UButton
-            v-for="item in navigation.items"
-            :key="item.to"
-            :to="item.to"
-            variant="ghost"
-            color="neutral"
-            size="sm"
-            active-class="bg-primary-100 text-primary-700"
-          >
-            {{ item.label }}
-          </UButton>
-        </nav>
+        <div class="hidden md:block">
+          <MainMenu />
+        </div>
 
         <UButton to="/jobs/new" icon="i-lucide-plus" size="sm">
           New application
@@ -40,29 +29,14 @@ const navigation = useNavigationStore();
       </UContainer>
     </header>
 
-    <div class="grow pb-11 md:pb-0">
+    <div class="grow pt-16 pb-11 md:pb-0">
       <slot />
     </div>
 
     <footer
       class="fixed bottom-0 left-0 right-0 md:hidden border-t border-default bg-default/95 backdrop-blur p-2"
     >
-      <nav
-        class="items-center justify-center gap-1 flex"
-        aria-label="Primary navigation"
-      >
-        <UButton
-          v-for="item in navigation.items"
-          :key="item.to"
-          :to="item.to"
-          variant="ghost"
-          color="neutral"
-          size="sm"
-          active-class="bg-primary-100 text-primary-700"
-        >
-          {{ item.label }}
-        </UButton>
-      </nav>
+      <MainMenu />
     </footer>
   </div>
 </template>

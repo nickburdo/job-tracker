@@ -13,7 +13,7 @@ const createJob = async (value: Record<string, unknown>) => {
       body: value
     })
 
-    await router.push(`/jobs/${job.id}/edit`)
+    await router.push(`/jobs/${job.id}`)
   } catch (error) {
     errorMessage.value =
       error instanceof Error ? error.message : 'Failed to create application'

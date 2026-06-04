@@ -334,7 +334,16 @@ const formatAppliedDate = (value: string | null) => {
             </div>
 
             <div>
-              <div class="mb-3 flex justify-end">
+              <div class="mb-3 flex justify-end gap-2">
+                <UButton
+                  :to="`/jobs/${job.id}`"
+                  icon="i-lucide-eye"
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                >
+                  View
+                </UButton>
                 <UButton
                   :to="`/jobs/${job.id}/edit`"
                   icon="i-lucide-pencil"

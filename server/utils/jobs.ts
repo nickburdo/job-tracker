@@ -1,3 +1,4 @@
+import { createError, getRouterParam } from 'h3';
 import { JobApplicationStatus } from '../../generated/prisma/client';
 
 const jobStatuses = new Set(Object.values(JobApplicationStatus));

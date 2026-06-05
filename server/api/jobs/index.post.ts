@@ -1,8 +1,7 @@
-export default defineEventHandler(async (event) => {
-  const payload = await readBody(event);
-  const data = parseJobPayload(payload);
+import { defineEventHandler, readBody } from 'h3';
+import { createJobApplication } from '../../utils/job-api';
+import { prisma } from '../../utils/prisma';
 
-  return prisma.jobApplication.create({
-    data,
-  });
+export default defineEventHandler(async (event) => {
+  return createJobApplication(prisma, await readBody(event));
 });

@@ -1,28 +1,8 @@
+import { defineEventHandler, readBody } from 'h3';
+import { updateJobApplication } from '../../utils/job-api';
+import { getJobId } from '../../utils/jobs';
+import { prisma } from '../../utils/prisma';
+
 export default defineEventHandler(async (event) => {
-  const id = getJobId(event);
-  const payload = await readBody(event);
-  const data = parseJobUpdatePayload(payload);
-
-  const existingJob = await prisma.jobApplication.findUnique({
-    where: {
-      id,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!existingJob) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Job application not found',
-    });
-  }
-
-  return prisma.jobApplication.update({
-    where: {
-      id,
-    },
-    data,
-  });
+  return updateJobApplication(prisma, getJobId(event), await readBody(event));
 });

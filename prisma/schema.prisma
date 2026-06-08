@@ -15,6 +15,7 @@ enum JobApplicationStatus {
   FINAL_INTERVIEW
   OFFER
   REJECTED
+  WITHDRAWN
   ARCHIVED
 }
 

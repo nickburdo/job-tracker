@@ -6,6 +6,7 @@ export type JobApplicationStatus =
   | 'FINAL_INTERVIEW'
   | 'OFFER'
   | 'REJECTED'
+  | 'WITHDRAWN'
   | 'ARCHIVED';
 
 export type JobStatusColor =
@@ -24,6 +25,7 @@ export const jobStatusOptions = [
   { label: 'Final Interview', value: 'FINAL_INTERVIEW' },
   { label: 'Offer', value: 'OFFER' },
   { label: 'Rejected', value: 'REJECTED' },
+  { label: 'Withdrawn', value: 'WITHDRAWN' },
   { label: 'Archived', value: 'ARCHIVED' },
 ] satisfies Array<{ label: string; value: JobApplicationStatus }>;
 
@@ -41,6 +43,7 @@ export const jobStatusLabels: Record<JobApplicationStatus, string> = {
   FINAL_INTERVIEW: 'Final Interview',
   OFFER: 'Offer',
   REJECTED: 'Rejected',
+  WITHDRAWN: 'Withdrawn',
   ARCHIVED: 'Archived',
 };
 
@@ -52,5 +55,6 @@ export const jobStatusColors: Record<JobApplicationStatus, JobStatusColor> = {
   FINAL_INTERVIEW: 'warning',
   OFFER: 'success',
   REJECTED: 'error',
+  WITHDRAWN: 'error',
   ARCHIVED: 'neutral',
 };

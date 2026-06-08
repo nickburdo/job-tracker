@@ -1,12 +1,42 @@
 <script setup lang="ts">
-import type { JobApplication } from '~/utils/job-applications';
+import type {
+  JobApplication,
+  JobApplicationsResponse,
+} from '~/utils/job-applications';
+
+const dashboardPageSize = 100;
+
+const fetchJobsPage = (page: number) =>
+  $fetch<JobApplicationsResponse>('/api/jobs', {
+    query: {
+      page,
+      perPage: dashboardPageSize,
+    },
+  });
 
 const {
   data: allJobs,
   pending,
   error,
   refresh,
-} = await useFetch<JobApplication[]>('/api/jobs');
+} = await useAsyncData('dashboard-jobs', async () => {
+  const firstPage = await fetchJobsPage(1);
+  const jobs: JobApplication[] = [...firstPage.items];
+
+  if (firstPage.totalPages > 1) {
+    const pageNumbers = Array.from(
+      { length: firstPage.totalPages - 1 },
+      (_, index) => index + 2,
+    );
+    const pages = await Promise.all(pageNumbers.map(fetchJobsPage));
+
+    for (const page of pages) {
+      jobs.push(...page.items);
+    }
+  }
+
+  return jobs;
+});
 
 const toast = useToast();
 const hasShownErrorToast = ref(false);

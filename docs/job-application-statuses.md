@@ -9,6 +9,7 @@ Job applications use these statuses:
 - `FINAL_INTERVIEW`: final interview or late-stage loop.
 - `OFFER`: offer received.
 - `REJECTED`: company rejected the application or process ended negatively.
+- `WITHDRAWN`: application withdrawn by the applicant.
 - `ARCHIVED`: old or inactive application kept for history.
 
 ## Quick Status Change

@@ -19,6 +19,25 @@ export type JobApplication = {
   updatedAt: string;
 };
 
+export type JobApplicationsResponse = {
+  items: JobApplication[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+};
+
+export type JobMetaResponse = {
+  companies: string[];
+  statuses: JobApplicationStatus[];
+  stats: {
+    total: number;
+    interviews: number;
+    offers: number;
+    rejections: number;
+  };
+};
+
 export const formatJobDate = (value: string | null) => {
   if (!value) {
     return 'Not set';

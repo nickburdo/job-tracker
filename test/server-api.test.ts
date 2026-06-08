@@ -5,6 +5,7 @@ import {
   createJobApplication,
   deleteJobApplication,
   getJobApplication,
+  getJobMeta,
   listJobApplications,
   updateJobApplication,
 } from '../server/utils/job-api';
@@ -12,6 +13,9 @@ import { parseJobPayload, parseJobUpdatePayload } from '../server/utils/jobs';
 
 type PrismaStubOptions = {
   findManyResult?: unknown;
+  findManyResults?: Array<unknown>;
+  countResult?: number;
+  groupByResult?: Array<Record<string, unknown>>;
   findUniqueResults?: Array<unknown>;
   createResult?: unknown;
   updateResult?: unknown;
@@ -20,12 +24,15 @@ type PrismaStubOptions = {
 const buildPrismaStub = (options: PrismaStubOptions = {}) => {
   const calls = {
     findMany: [] as Array<Record<string, unknown>>,
+    count: [] as Array<Record<string, unknown>>,
+    groupBy: [] as Array<Record<string, unknown>>,
     findUnique: [] as Array<Record<string, unknown>>,
     create: [] as Array<Record<string, unknown>>,
     update: [] as Array<Record<string, unknown>>,
     delete: [] as Array<Record<string, unknown>>,
   };
 
+  const findManyResults = [...(options.findManyResults ?? [])];
   const findUniqueResults = [...(options.findUniqueResults ?? [])];
 
   return {
@@ -34,7 +41,18 @@ const buildPrismaStub = (options: PrismaStubOptions = {}) => {
       jobApplication: {
         findMany: async (args: Record<string, unknown>) => {
           calls.findMany.push(args);
+          if (findManyResults.length > 0) {
+            return findManyResults.shift();
+          }
           return options.findManyResult ?? [];
+        },
+        count: async (args: Record<string, unknown>) => {
+          calls.count.push(args);
+          return options.countResult ?? 0;
+        },
+        groupBy: async (args: Record<string, unknown>) => {
+          calls.groupBy.push(args);
+          return options.groupByResult ?? [];
         },
         findUnique: async (args: Record<string, unknown>) => {
           calls.findUnique.push(args);
@@ -67,7 +85,10 @@ const expectHttpError = async (
     assert.fail('Expected error to be thrown');
   } catch (error) {
     assert.equal((error as { statusCode?: number }).statusCode, statusCode);
-    assert.equal((error as { statusMessage?: string }).statusMessage, statusMessage);
+    assert.equal(
+      (error as { statusMessage?: string }).statusMessage,
+      statusMessage,
+    );
   }
 };
 
@@ -111,12 +132,16 @@ test('parseJobUpdatePayload rejects empty updates', () => {
     (error: unknown) =>
       (error as { statusCode?: number; statusMessage?: string }).statusCode ===
         400 &&
-      (error as { statusMessage?: string }).statusMessage === 'No fields to update',
+      (error as { statusMessage?: string }).statusMessage ===
+        'No fields to update',
   );
 });
 
 test('listJobApplications applies filters and sort order', async () => {
-  const { prisma, calls } = buildPrismaStub({ findManyResult: [{ id: '1' }] });
+  const { prisma, calls } = buildPrismaStub({
+    findManyResult: [{ id: '1' }],
+    countResult: 1,
+  });
 
   const result = await listJobApplications(prisma, {
     status: 'APPLIED',
@@ -124,7 +149,13 @@ test('listJobApplications applies filters and sort order', async () => {
     search: 'frontend',
   });
 
-  assert.deepEqual(result, [{ id: '1' }]);
+  assert.deepEqual(result, {
+    items: [{ id: '1' }],
+    total: 1,
+    page: 1,
+    perPage: 20,
+    totalPages: 1,
+  });
   assert.equal(calls.findMany.length, 1);
   assert.deepEqual(calls.findMany[0], {
     where: {
@@ -158,6 +189,72 @@ test('listJobApplications applies filters and sort order', async () => {
     orderBy: {
       createdAt: 'desc',
     },
+    skip: 0,
+    take: 20,
+  });
+  assert.equal(calls.count.length, 1);
+  assert.deepEqual(calls.count[0], {
+    where: {
+      status: 'APPLIED',
+      company: {
+        contains: 'OpenAI',
+      },
+      OR: [
+        {
+          company: {
+            contains: 'frontend',
+          },
+        },
+        {
+          position: {
+            contains: 'frontend',
+          },
+        },
+        {
+          source: {
+            contains: 'frontend',
+          },
+        },
+        {
+          notes: {
+            contains: 'frontend',
+          },
+        },
+      ],
+    },
+  });
+});
+
+test('listJobApplications applies pagination params', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    findManyResult: [{ id: '1' }],
+    countResult: 31,
+  });
+
+  const result = await listJobApplications(prisma, {
+    page: '2',
+    perPage: '10',
+  });
+
+  assert.deepEqual(result, {
+    items: [{ id: '1' }],
+    total: 31,
+    page: 2,
+    perPage: 10,
+    totalPages: 4,
+  });
+  assert.equal(calls.findMany.length, 1);
+  assert.deepEqual(calls.findMany[0], {
+    where: {},
+    orderBy: {
+      createdAt: 'desc',
+    },
+    skip: 10,
+    take: 10,
+  });
+  assert.equal(calls.count.length, 1);
+  assert.deepEqual(calls.count[0], {
+    where: {},
   });
 });
 
@@ -169,6 +266,147 @@ test('listJobApplications rejects invalid status', async () => {
     400,
     'status is invalid',
   );
+});
+
+test('listJobApplications accepts interview group status', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    findManyResult: [{ id: '1' }],
+    countResult: 3,
+  });
+
+  const result = await listJobApplications(prisma, {
+    status: 'INTERVIEWS',
+  });
+
+  assert.deepEqual(result, {
+    items: [{ id: '1' }],
+    total: 3,
+    page: 1,
+    perPage: 20,
+    totalPages: 1,
+  });
+  assert.equal(calls.findMany.length, 1);
+  assert.deepEqual(calls.findMany[0], {
+    where: {
+      status: {
+        in: ['SCREENING', 'TECHNICAL_INTERVIEW', 'FINAL_INTERVIEW'],
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    skip: 0,
+    take: 20,
+  });
+  assert.equal(calls.count.length, 1);
+  assert.deepEqual(calls.count[0], {
+    where: {
+      status: {
+        in: ['SCREENING', 'TECHNICAL_INTERVIEW', 'FINAL_INTERVIEW'],
+      },
+    },
+  });
+});
+
+test('listJobApplications rejects invalid pagination', async () => {
+  const { prisma } = buildPrismaStub();
+
+  await expectHttpError(
+    () => listJobApplications(prisma, { page: '0' }),
+    400,
+    'page must be a positive integer',
+  );
+
+  await expectHttpError(
+    () => listJobApplications(prisma, { perPage: '0' }),
+    400,
+    'perPage must be a positive integer',
+  );
+});
+
+test('getJobMeta returns companies, statuses and stats', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    findManyResults: [
+      [{ company: 'OpenAI' }, { company: 'Anthropic' }],
+      [{ status: 'SAVED' }, { status: 'OFFER' }],
+    ],
+    groupByResult: [
+      { status: 'SAVED', _count: { _all: 3 } },
+      { status: 'SCREENING', _count: { _all: 2 } },
+      { status: 'TECHNICAL_INTERVIEW', _count: { _all: 1 } },
+      { status: 'OFFER', _count: { _all: 4 } },
+      { status: 'REJECTED', _count: { _all: 5 } },
+    ],
+  });
+
+  const result = await getJobMeta(prisma, {
+    company: 'OpenAI',
+    search: 'frontend',
+  });
+
+  assert.deepEqual(result, {
+    companies: ['OpenAI', 'Anthropic'],
+    statuses: ['SAVED', 'OFFER'],
+    stats: {
+      total: 15,
+      interviews: 3,
+      offers: 4,
+      rejections: 5,
+    },
+  });
+  assert.equal(calls.findMany.length, 2);
+  assert.deepEqual(calls.findMany[0], {
+    distinct: ['company'],
+    select: {
+      company: true,
+    },
+    orderBy: {
+      company: 'asc',
+    },
+  });
+  assert.deepEqual(calls.findMany[1], {
+    distinct: ['status'],
+    select: {
+      status: true,
+    },
+    orderBy: {
+      status: 'asc',
+    },
+  });
+  assert.equal(calls.groupBy.length, 1);
+  assert.deepEqual(calls.groupBy[0], {
+    by: ['status'],
+    where: {
+      company: {
+        contains: 'OpenAI',
+      },
+      OR: [
+        {
+          company: {
+            contains: 'frontend',
+          },
+        },
+        {
+          position: {
+            contains: 'frontend',
+          },
+        },
+        {
+          source: {
+            contains: 'frontend',
+          },
+        },
+        {
+          notes: {
+            contains: 'frontend',
+          },
+        },
+      ],
+    },
+    _count: {
+      _all: true,
+    },
+  });
 });
 
 test('createJobApplication creates parsed payload', async () => {

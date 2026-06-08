@@ -42,6 +42,7 @@ const sourceOptions = [
   { label: 'LinkedIn', value: 'LinkedIn' },
   { label: 'djinni', value: 'Djinni' },
   { label: 'DOU', value: 'DOU' },
+  { label: 'robota.ua', value: 'robota.ua' },
   { label: 'work.ua', value: 'work.ua' },
   { label: 'Other', value: 'Other' },
 ];

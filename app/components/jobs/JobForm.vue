@@ -38,6 +38,13 @@ const remoteTypeOptions = [
   { label: 'Hybrid', value: 'Hybrid' },
   { label: 'On-site', value: 'On-site' },
 ];
+const sourceOptions = [
+  { label: 'LinkedIn', value: 'LinkedIn' },
+  { label: 'djinni', value: 'Djinni' },
+  { label: 'DOU', value: 'DOU' },
+  { label: 'work.ua', value: 'work.ua' },
+  { label: 'Other', value: 'Other' },
+];
 
 const form = reactive<JobFormValue>({
   company: props.initialValue?.company ?? '',
@@ -158,7 +165,12 @@ const handleCancel = () => {
       </UFormField>
 
       <UFormField label="Source" :error="fieldErrors.source" required>
-        <UInput v-model="form.source" class="w-full" placeholder="LinkedIn" />
+        <USelectMenu
+          v-model="form.source"
+          class="w-full"
+          :items="sourceOptions"
+          value-key="value"
+        />
       </UFormField>
 
       <UFormField label="Status">

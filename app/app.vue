@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ToasterProps } from '#ui/components/Toaster.vue';
 
-const toaster = { position: 'top-right' } as ToasterProps;
+const toaster = { position: 'bottom-right' } as ToasterProps;
 </script>
 
 <template>

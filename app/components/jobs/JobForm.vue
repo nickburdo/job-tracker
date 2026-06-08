@@ -24,10 +24,12 @@ const props = defineProps<{
   initialValue?: Partial<JobFormValue>;
   submitLabel: string;
   pending?: boolean;
+  serverErrors?: Partial<Record<keyof JobFormValue, string>>;
 }>();
 
 const emit = defineEmits<{
   submit: [value: JobFormValue];
+  clearServerError: [field: 'vacancyUrl'];
 }>();
 
 const router = useRouter();
@@ -112,6 +114,9 @@ const validateForm = () => {
   return Object.keys(fieldErrors.value).length === 0;
 };
 
+const getFieldError = (field: keyof JobFormValue) =>
+  fieldErrors.value[field] ?? props.serverErrors?.[field];
+
 const onSubmit = () => {
   if (!validateForm()) {
     return;
@@ -129,6 +134,15 @@ const onSubmit = () => {
   });
 };
 
+watch(
+  () => form.vacancyUrl,
+  () => {
+    if (props.serverErrors?.vacancyUrl) {
+      emit('clearServerError', 'vacancyUrl');
+    }
+  },
+);
+
 const handleCancel = () => {
   if (window.history.length > 1) {
     router.back();
@@ -141,7 +155,7 @@ const handleCancel = () => {
 <template>
   <form class="flex flex-col gap-6" @submit.prevent="onSubmit">
     <div class="grid gap-4 lg:grid-cols-2">
-      <UFormField label="Company" :error="fieldErrors.company" required>
+      <UFormField label="Company" :error="getFieldError('company')" required>
         <UInput
           v-model="form.company"
           class="w-full"
@@ -149,7 +163,7 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Position" :error="fieldErrors.position" required>
+      <UFormField label="Position" :error="getFieldError('position')" required>
         <UInput
           v-model="form.position"
           class="w-full"
@@ -157,7 +171,7 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Vacancy URL" :error="fieldErrors.vacancyUrl" required>
+      <UFormField label="Vacancy URL" :error="getFieldError('vacancyUrl')" required>
         <UInput
           v-model="form.vacancyUrl"
           class="w-full"
@@ -165,7 +179,7 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Source" :error="fieldErrors.source" required>
+      <UFormField label="Source" :error="getFieldError('source')" required>
         <USelectMenu
           v-model="form.source"
           class="w-full"
@@ -204,7 +218,7 @@ const handleCancel = () => {
         <UInput v-model="form.currency" class="w-full" placeholder="USD" />
       </UFormField>
 
-      <UFormField label="Salary min" :error="fieldErrors.salaryMin">
+      <UFormField label="Salary min" :error="getFieldError('salaryMin')">
         <UInput
           v-model.number="form.salaryMin"
           class="w-full"
@@ -213,7 +227,7 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Salary max" :error="fieldErrors.salaryMax">
+      <UFormField label="Salary max" :error="getFieldError('salaryMax')">
         <UInput
           v-model.number="form.salaryMax"
           class="w-full"

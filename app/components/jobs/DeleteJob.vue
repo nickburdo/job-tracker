@@ -7,12 +7,13 @@ const props = defineProps<{
 
 const open = ref(false);
 const deletePending = ref(false);
+const deleteEndpoint = computed(() => `/api/jobs/${props.jobId}`);
 
 const deleteJob = async () => {
   deletePending.value = true;
 
   try {
-    await $fetch(`/api/jobs/${props.jobId}`, {
+    await $fetch(deleteEndpoint.value, {
       method: 'DELETE',
     });
 

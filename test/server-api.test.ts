@@ -16,6 +16,7 @@ type PrismaStubOptions = {
   findManyResults?: Array<unknown>;
   countResult?: number;
   groupByResult?: Array<Record<string, unknown>>;
+  findFirstResults?: Array<unknown>;
   findUniqueResults?: Array<unknown>;
   createResult?: unknown;
   updateResult?: unknown;
@@ -26,6 +27,7 @@ const buildPrismaStub = (options: PrismaStubOptions = {}) => {
     findMany: [] as Array<Record<string, unknown>>,
     count: [] as Array<Record<string, unknown>>,
     groupBy: [] as Array<Record<string, unknown>>,
+    findFirst: [] as Array<Record<string, unknown>>,
     findUnique: [] as Array<Record<string, unknown>>,
     create: [] as Array<Record<string, unknown>>,
     update: [] as Array<Record<string, unknown>>,
@@ -33,6 +35,7 @@ const buildPrismaStub = (options: PrismaStubOptions = {}) => {
   };
 
   const findManyResults = [...(options.findManyResults ?? [])];
+  const findFirstResults = [...(options.findFirstResults ?? [])];
   const findUniqueResults = [...(options.findUniqueResults ?? [])];
 
   return {
@@ -53,6 +56,10 @@ const buildPrismaStub = (options: PrismaStubOptions = {}) => {
         groupBy: async (args: Record<string, unknown>) => {
           calls.groupBy.push(args);
           return options.groupByResult ?? [];
+        },
+        findFirst: async (args: Record<string, unknown>) => {
+          calls.findFirst.push(args);
+          return findFirstResults.shift() ?? null;
         },
         findUnique: async (args: Record<string, unknown>) => {
           calls.findUnique.push(args);
@@ -424,6 +431,7 @@ test('createJobApplication creates parsed payload', async () => {
   });
 
   assert.deepEqual(result, { id: 'job_1' });
+  assert.equal(calls.findMany.length, 1);
   assert.equal(calls.create.length, 1);
   assert.deepEqual(calls.create[0], {
     data: {
@@ -442,6 +450,28 @@ test('createJobApplication creates parsed payload', async () => {
       nextFollowUpAt: null,
     },
   });
+});
+
+test('createJobApplication rejects duplicate vacancy URL', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    findManyResults: [[{ id: 'job_existing', vacancyUrl: 'https://example.com/jobs/1?foo=bar' }]],
+  });
+
+  await expectHttpError(
+    () =>
+      createJobApplication(prisma, {
+        company: 'OpenAI',
+        position: 'Frontend Engineer',
+        vacancyUrl: 'https://example.com/jobs/1?baz=qux',
+        status: 'SAVED',
+        source: 'LinkedIn',
+      }),
+    409,
+    'Vacancy URL already exists',
+  );
+
+  assert.equal(calls.findMany.length, 1);
+  assert.equal(calls.create.length, 0);
 });
 
 test('getJobApplication returns 404 when job is missing', async () => {
@@ -477,6 +507,26 @@ test('updateJobApplication updates parsed payload', async () => {
       notes: 'Updated',
     },
   });
+});
+
+test('updateJobApplication rejects duplicate vacancy URL', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    findUniqueResults: [{ id: 'job_1' }],
+    findManyResults: [[{ id: 'job_other', vacancyUrl: 'https://example.com/jobs/1?foo=bar' }]],
+  });
+
+  await expectHttpError(
+    () =>
+      updateJobApplication(prisma, 'job_1', {
+        vacancyUrl: 'https://example.com/jobs/1?baz=qux',
+      }),
+    409,
+    'Vacancy URL already exists',
+  );
+
+  assert.equal(calls.findUnique.length, 1);
+  assert.equal(calls.findMany.length, 1);
+  assert.equal(calls.update.length, 0);
 });
 
 test('updateJobApplication returns 404 when job is missing', async () => {

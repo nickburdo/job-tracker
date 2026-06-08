@@ -23,7 +23,7 @@ model JobApplication {
   id             String               @id @default(cuid())
   company        String
   position       String
-  vacancyUrl     String
+  vacancyUrl     String               @unique
   status         JobApplicationStatus @default(SAVED)
   source         String
   salaryMin      Int?

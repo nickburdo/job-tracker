@@ -1,18 +1,9 @@
 import { createError } from 'h3';
-import { JobApplicationStatus } from '../../generated/prisma/client';
+import { JobApplicationStatus } from '~~/generated/prisma/enums';
+import type { PrismaClient } from '~~/generated/prisma/client';
 import { parseJobPayload, parseJobUpdatePayload } from './jobs';
 
-type PrismaJobApplicationClient = {
-  jobApplication: {
-    findMany: (args: Record<string, unknown>) => Promise<unknown>;
-    count: (args: Record<string, unknown>) => Promise<number>;
-    groupBy: (args: Record<string, unknown>) => Promise<Array<Record<string, unknown>>>;
-    create: (args: Record<string, unknown>) => Promise<unknown>;
-    findUnique: (args: Record<string, unknown>) => Promise<unknown>;
-    update: (args: Record<string, unknown>) => Promise<unknown>;
-    delete: (args: Record<string, unknown>) => Promise<unknown>;
-  };
-};
+type PrismaJobApplicationClient = Pick<PrismaClient, 'jobApplication'>;
 
 type JobQuery = {
   status?: string;
@@ -28,6 +19,7 @@ const interviewStatuses = [
   JobApplicationStatus.TECHNICAL_INTERVIEW,
   JobApplicationStatus.FINAL_INTERVIEW,
 ];
+const uniqueConstraintCode = 'P2002';
 
 const parsePositiveInteger = (
   value: unknown,
@@ -50,7 +42,9 @@ const parsePositiveInteger = (
   return numberValue;
 };
 
-const buildJobWhere = (query: Pick<JobQuery, 'status' | 'company' | 'search'>) => {
+const buildJobWhere = (
+  query: Pick<JobQuery, 'status' | 'company' | 'search'>,
+) => {
   const status = typeof query.status === 'string' ? query.status : undefined;
   const company = typeof query.company === 'string' ? query.company : undefined;
   const search = typeof query.search === 'string' ? query.search : undefined;
@@ -110,6 +104,58 @@ const buildJobWhere = (query: Pick<JobQuery, 'status' | 'company' | 'search'>) =
         }
       : {}),
   };
+};
+
+const normalizeVacancyUrl = (value: string) => value.split('?')[0];
+
+const isUniqueConstraintError = (error: unknown) =>
+  typeof error === 'object' &&
+  error !== null &&
+  'code' in error &&
+  (error as { code?: string }).code === uniqueConstraintCode;
+
+const throwVacancyUrlConflict = () => {
+  throw createError({
+    statusCode: 409,
+    statusMessage: 'Vacancy URL already exists',
+  });
+};
+
+const ensureVacancyUrlIsUnique = async (
+  prisma: PrismaJobApplicationClient,
+  vacancyUrl: string,
+  excludeId?: string,
+) => {
+  const normalizedVacancyUrl = normalizeVacancyUrl(vacancyUrl);
+  const existingJobs = await prisma.jobApplication.findMany({
+    where: {
+      vacancyUrl: {
+        startsWith: normalizedVacancyUrl,
+      },
+    },
+    select: {
+      id: true,
+      vacancyUrl: true,
+    },
+  });
+
+  const hasConflict = existingJobs.some((existingJob) => {
+    const existingId = existingJob.id as string | undefined;
+    const existingVacancyUrl = existingJob.vacancyUrl as string | undefined;
+
+    if (!existingVacancyUrl) {
+      return false;
+    }
+
+    return (
+      normalizeVacancyUrl(existingVacancyUrl) === normalizedVacancyUrl &&
+      (!excludeId || existingId !== excludeId)
+    );
+  });
+
+  if (hasConflict) {
+    throwVacancyUrlConflict();
+  }
 };
 
 export const listJobApplications = (
@@ -209,9 +255,19 @@ export const createJobApplication = (
 ) => {
   const data = parseJobPayload(payload);
 
-  return prisma.jobApplication.create({
-    data,
-  });
+  return ensureVacancyUrlIsUnique(prisma, data.vacancyUrl)
+    .then(() =>
+      prisma.jobApplication.create({
+        data,
+      }),
+    )
+    .catch((error) => {
+      if (isUniqueConstraintError(error)) {
+        throwVacancyUrlConflict();
+      }
+
+      throw error;
+    });
 };
 
 export const getJobApplication = async (
@@ -257,12 +313,24 @@ export const updateJobApplication = async (
     });
   }
 
-  return prisma.jobApplication.update({
-    where: {
-      id,
-    },
-    data,
-  });
+  if (data.vacancyUrl) {
+    await ensureVacancyUrlIsUnique(prisma, data.vacancyUrl, id);
+  }
+
+  try {
+    return await prisma.jobApplication.update({
+      where: {
+        id,
+      },
+      data,
+    });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      throwVacancyUrlConflict();
+    }
+
+    throw error;
+  }
 };
 
 export const deleteJobApplication = async (

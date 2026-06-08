@@ -5,7 +5,16 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const id = computed(() => String(route.params.id));
+const updateEndpoint = computed(() => `/api/jobs/${id.value}`);
 const pending = ref(false);
+const serverFieldErrors = ref<{ vacancyUrl?: string }>({});
+
+const clearServerError = (field: 'vacancyUrl') => {
+  serverFieldErrors.value = {
+    ...serverFieldErrors.value,
+    [field]: undefined,
+  };
+};
 
 const { data: job, error } = await useFetch<JobApplication>(
   () => `/api/jobs/${id.value}`,
@@ -35,9 +44,10 @@ const initialValue = computed(() => {
 
 const updateJob = async (value: Record<string, unknown>) => {
   pending.value = true;
+  serverFieldErrors.value = {};
 
   try {
-    await $fetch(`/api/jobs/${id.value}`, {
+    await $fetch(updateEndpoint.value, {
       method: 'PATCH',
       body: value,
     });
@@ -45,6 +55,18 @@ const updateJob = async (value: Record<string, unknown>) => {
     toast.add({ title: 'Application updated', color: 'success' });
     await router.push(`/jobs/${id.value}`);
   } catch (updateError) {
+    if (
+      typeof updateError === 'object' &&
+      updateError !== null &&
+      'statusCode' in updateError &&
+      (updateError as { statusCode?: number }).statusCode === 409
+    ) {
+      serverFieldErrors.value = {
+        vacancyUrl: 'Такая ссылка на вакансию уже есть',
+      };
+      return;
+    }
+
     const errorMessage =
       updateError instanceof Error
         ? updateError.message
@@ -99,6 +121,8 @@ const updateJob = async (value: Record<string, unknown>) => {
           :initial-value="initialValue"
           submit-label="Save changes"
           :pending="pending"
+          :server-errors="serverFieldErrors"
+          @clear-server-error="clearServerError"
           @submit="updateJob"
         />
       </div>

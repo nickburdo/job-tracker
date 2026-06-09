@@ -1,6 +1,10 @@
 import { createError } from 'h3';
-import { JobApplicationStatus } from '~~/generated/prisma/enums';
-import type { PrismaClient } from '~~/generated/prisma/client';
+import { JobApplicationStatus } from '../../generated/prisma/client';
+import type { PrismaClient } from '../../generated/prisma/client';
+import {
+  jobValidationMessages,
+  normalizeVacancyUrl,
+} from '../../shared/job-validation-messages';
 import { parseJobPayload, parseJobUpdatePayload } from './jobs';
 
 type PrismaJobApplicationClient = Pick<PrismaClient, 'jobApplication'>;
@@ -35,7 +39,7 @@ const parsePositiveInteger = (
   if (!Number.isInteger(numberValue) || numberValue < 1) {
     throw createError({
       statusCode: 400,
-      statusMessage: `${field} must be a positive integer`,
+      statusMessage: jobValidationMessages.positiveInteger(field),
     });
   }
 
@@ -56,7 +60,7 @@ const buildJobWhere = (
   ) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'status is invalid',
+      statusMessage: jobValidationMessages.invalidStatus,
     });
   }
 
@@ -106,8 +110,6 @@ const buildJobWhere = (
   };
 };
 
-const normalizeVacancyUrl = (value: string) => value.split('?')[0];
-
 const isUniqueConstraintError = (error: unknown) =>
   typeof error === 'object' &&
   error !== null &&
@@ -116,8 +118,13 @@ const isUniqueConstraintError = (error: unknown) =>
 
 const throwVacancyUrlConflict = () => {
   throw createError({
-    statusCode: 409,
-    statusMessage: 'Vacancy URL already exists',
+    statusCode: 422,
+    message: jobValidationMessages.vacancyUrlExists,
+    data: {
+      fieldErrors: {
+        vacancyUrl: jobValidationMessages.vacancyUrlExists,
+      },
+    },
   });
 };
 
@@ -127,7 +134,7 @@ const ensureVacancyUrlIsUnique = async (
   excludeId?: string,
 ) => {
   const normalizedVacancyUrl = normalizeVacancyUrl(vacancyUrl);
-  const existingJobs = await prisma.jobApplication.findMany({
+  const existingJobs = (await prisma.jobApplication.findMany({
     where: {
       vacancyUrl: {
         startsWith: normalizedVacancyUrl,
@@ -137,7 +144,7 @@ const ensureVacancyUrlIsUnique = async (
       id: true,
       vacancyUrl: true,
     },
-  });
+  })) as Array<{ id?: string; vacancyUrl?: string }>;
 
   const hasConflict = existingJobs.some((existingJob) => {
     const existingId = existingJob.id as string | undefined;
@@ -221,11 +228,15 @@ export const getJobMeta = async (
     }),
   ]);
 
+  const typedCompanies = companies as Array<{ company: string }>;
+  const typedStatuses = statuses as Array<{ status: JobApplicationStatus }>;
+  const typedStats = stats as Array<{
+    status: JobApplicationStatus;
+    _count: { _all: number };
+  }>;
+
   const countByStatus = new Map(
-    stats.map((row) => [
-      row.status as JobApplicationStatus,
-      (row._count as { _all: number })._all,
-    ]),
+    typedStats.map((row) => [row.status, row._count._all]),
   );
   const total = Array.from(countByStatus.values()).reduce(
     (sum, value) => sum + value,
@@ -238,8 +249,8 @@ export const getJobMeta = async (
   );
 
   return {
-    companies: companies.map((row) => row.company as string),
-    statuses: statuses.map((row) => row.status as JobApplicationStatus),
+    companies: typedCompanies.map((row) => row.company),
+    statuses: typedStatuses.map((row) => row.status),
     stats: {
       total,
       interviews,

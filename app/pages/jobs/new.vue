@@ -1,16 +1,28 @@
 <script setup lang="ts">
+import { handleApiFormError } from '~/utils/form-errors';
+import {
+  jobFormFields,
+  type JobFormField,
+  type JobFormServerErrors,
+} from '~/utils/job-form-errors';
+
 const router = useRouter();
 const toast = useToast();
 const pending = ref(false);
-const serverFieldErrors = ref<{ vacancyUrl?: string }>({});
+const serverFieldErrors = ref<JobFormServerErrors>({});
 
-const clearServerError = (field: 'vacancyUrl') => {
-  if (field in serverFieldErrors.value) {
-    serverFieldErrors.value = {
-      ...serverFieldErrors.value,
-      [field]: undefined,
-    };
-  }
+const clearServerError = (field: keyof JobFormServerErrors) => {
+  serverFieldErrors.value = {
+    ...serverFieldErrors.value,
+    [field]: undefined,
+  };
+};
+
+const setServerError = (field: JobFormField, message: string) => {
+  serverFieldErrors.value = {
+    ...serverFieldErrors.value,
+    [field]: message,
+  };
 };
 
 const createJob = async (value: Record<string, unknown>) => {
@@ -27,20 +39,18 @@ const createJob = async (value: Record<string, unknown>) => {
     await router.push(`/jobs/${job.id}`);
   } catch (error) {
     if (
-      typeof error === 'object' &&
-      error !== null &&
-      'statusCode' in error &&
-      (error as { statusCode?: number }).statusCode === 409
+      handleApiFormError({
+        error,
+        fields: jobFormFields,
+        setFieldError: setServerError,
+        showToast: (message) => {
+          toast.add({ title: message, color: 'error' });
+        },
+        fallbackMessage: 'Failed to create application',
+      })
     ) {
-      serverFieldErrors.value = {
-        vacancyUrl: 'Такая ссылка на вакансию уже есть',
-      };
       return;
     }
-
-    const errorMessage =
-      error instanceof Error ? error.message : 'Failed to create application';
-    toast.add({ title: errorMessage, color: 'error' });
   } finally {
     pending.value = false;
   }

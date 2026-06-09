@@ -1,7 +1,41 @@
 import { createError, getRouterParam } from 'h3';
 import { JobApplicationStatus } from '../../generated/prisma/client';
+import {
+  jobValidationMessages,
+  jobTextFieldLimits,
+  type JobTextField,
+} from '../../shared/job-validation-messages';
 
 const jobStatuses = new Set(Object.values(JobApplicationStatus));
+
+type FieldError = {
+  fieldErrors: Record<string, string>;
+};
+
+const throwFieldError = (field: string, message: string): never => {
+  throw createError({
+    statusCode: 422,
+    message,
+    data: {
+      fieldErrors: {
+        [field]: message,
+      } satisfies FieldError['fieldErrors'],
+    },
+  });
+};
+
+const throwFieldErrors = (
+  fieldErrors: Record<string, string>,
+  statusMessage: string,
+): never => {
+  throw createError({
+    statusCode: 422,
+    message: statusMessage,
+    data: {
+      fieldErrors,
+    },
+  });
+};
 
 type JobPayload = {
   company?: unknown;
@@ -19,30 +53,41 @@ type JobPayload = {
   nextFollowUpAt?: unknown;
 };
 
+const hasTextLimit = (field: string): field is JobTextField =>
+  field in jobTextFieldLimits;
+
 const requiredString = (value: unknown, field: string) => {
   if (typeof value !== 'string' || !value.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `${field} is required`,
-    });
+    throwFieldError(field, jobValidationMessages.required(field));
   }
 
-  return value.trim();
+  const stringValue = value as string;
+  const trimmed = stringValue.trim();
+
+  if (hasTextLimit(field) && trimmed.length > jobTextFieldLimits[field]) {
+    throwFieldError(field, jobValidationMessages.maxLength(field));
+  }
+
+  return trimmed;
 };
 
-const optionalString = (value: unknown) => {
+const optionalString = (value: unknown, field: string) => {
   if (value === undefined || value === null || value === '') {
     return null;
   }
 
   if (typeof value !== 'string') {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Expected a string value',
-    });
+    throwFieldError(field, jobValidationMessages.stringExpected(field));
   }
 
-  return value.trim();
+  const stringValue = value as string;
+  const trimmed = stringValue.trim();
+
+  if (hasTextLimit(field) && trimmed.length > jobTextFieldLimits[field]) {
+    throwFieldError(field, jobValidationMessages.maxLength(field));
+  }
+
+  return trimmed;
 };
 
 const optionalNumber = (value: unknown, field: string) => {
@@ -53,10 +98,7 @@ const optionalNumber = (value: unknown, field: string) => {
   const numberValue = Number(value);
 
   if (!Number.isInteger(numberValue) || numberValue < 0) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `${field} must be a positive integer`,
-    });
+    throwFieldError(field, jobValidationMessages.positiveInteger(field));
   }
 
   return numberValue;
@@ -68,19 +110,13 @@ const optionalDate = (value: unknown, field: string) => {
   }
 
   if (typeof value !== 'string') {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `${field} must be an ISO date string`,
-    });
+    throwFieldError(field, jobValidationMessages.isoDateString(field));
   }
 
-  const date = new Date(value);
+  const date = new Date(value as string);
 
   if (Number.isNaN(date.getTime())) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `${field} must be a valid date`,
-    });
+    throwFieldError(field, jobValidationMessages.validDate(field));
   }
 
   return date;
@@ -95,10 +131,7 @@ const parseStatus = (value: unknown) => {
     typeof value !== 'string' ||
     !jobStatuses.has(value as JobApplicationStatus)
   ) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'status is invalid',
-    });
+    throwFieldError('status', jobValidationMessages.invalidStatus);
   }
 
   return value as JobApplicationStatus;
@@ -109,10 +142,7 @@ const parseOptionalStatus = (value: unknown) => {
     typeof value !== 'string' ||
     !jobStatuses.has(value as JobApplicationStatus)
   ) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'status is invalid',
-    });
+    throwFieldError('status', jobValidationMessages.invalidStatus);
   }
 
   return value as JobApplicationStatus;
@@ -126,10 +156,13 @@ export const parseJobPayload = (payload: JobPayload) => {
   const salaryMax = optionalNumber(payload.salaryMax, 'salaryMax');
 
   if (salaryMin !== null && salaryMax !== null && salaryMin > salaryMax) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'salaryMin cannot be greater than salaryMax',
-    });
+    throwFieldErrors(
+      {
+        salaryMin: jobValidationMessages.salaryMinTooHigh,
+        salaryMax: jobValidationMessages.salaryMaxTooLow,
+      },
+      jobValidationMessages.salaryMinTooHigh,
+    );
   }
 
   return {
@@ -140,10 +173,10 @@ export const parseJobPayload = (payload: JobPayload) => {
     source: requiredString(payload.source, 'source'),
     salaryMin,
     salaryMax,
-    currency: optionalString(payload.currency),
-    location: optionalString(payload.location),
-    remoteType: optionalString(payload.remoteType),
-    notes: optionalString(payload.notes),
+    currency: optionalString(payload.currency, 'currency'),
+    location: optionalString(payload.location, 'location'),
+    remoteType: optionalString(payload.remoteType, 'remoteType'),
+    notes: optionalString(payload.notes, 'notes'),
     appliedAt: optionalDate(payload.appliedAt, 'appliedAt'),
     nextFollowUpAt: optionalDate(payload.nextFollowUpAt, 'nextFollowUpAt'),
   };
@@ -187,26 +220,29 @@ export const parseJobUpdatePayload = (payload: JobPayload) => {
     data.salaryMax !== null &&
     data.salaryMin > data.salaryMax
   ) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'salaryMin cannot be greater than salaryMax',
-    });
+    throwFieldErrors(
+      {
+        salaryMin: 'salaryMin cannot be greater than salaryMax',
+        salaryMax: 'salaryMax cannot be lower than salaryMin',
+      },
+      'salaryMin cannot be greater than salaryMax',
+    );
   }
 
   if (hasField(payload, 'currency')) {
-    data.currency = optionalString(payload.currency);
+    data.currency = optionalString(payload.currency, 'currency');
   }
 
   if (hasField(payload, 'location')) {
-    data.location = optionalString(payload.location);
+    data.location = optionalString(payload.location, 'location');
   }
 
   if (hasField(payload, 'remoteType')) {
-    data.remoteType = optionalString(payload.remoteType);
+    data.remoteType = optionalString(payload.remoteType, 'remoteType');
   }
 
   if (hasField(payload, 'notes')) {
-    data.notes = optionalString(payload.notes);
+    data.notes = optionalString(payload.notes, 'notes');
   }
 
   if (hasField(payload, 'appliedAt')) {
@@ -222,23 +258,20 @@ export const parseJobUpdatePayload = (payload: JobPayload) => {
 
   if (Object.keys(data).length === 0) {
     throw createError({
-      statusCode: 400,
-      statusMessage: 'No fields to update',
+      statusCode: 422,
+      message: jobValidationMessages.noFieldsToUpdate,
     });
   }
 
   return data;
 };
 
-export const getJobId = (event: Parameters<typeof getRouterParam>[0]) => {
+export const getJobId = (event: Parameters<typeof getRouterParam>[0]): string => {
   const id = getRouterParam(event, 'id');
 
   if (!id) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'id is required',
-    });
+    throwFieldError('id', jobValidationMessages.required('id'));
   }
 
-  return id;
+  return id as string;
 };

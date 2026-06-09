@@ -3,6 +3,12 @@ import {
   jobStatusOptions,
   type JobApplicationStatus,
 } from '~/utils/job-statuses';
+import {
+  jobValidationMessages,
+  jobTextFieldLimits,
+  type JobTextField,
+} from '../../../shared/job-validation-messages';
+import type { JobFormField, JobFormServerErrors } from '~/utils/job-form-errors';
 
 type JobFormValue = {
   company: string;
@@ -24,12 +30,12 @@ const props = defineProps<{
   initialValue?: Partial<JobFormValue>;
   submitLabel: string;
   pending?: boolean;
-  serverErrors?: Partial<Record<keyof JobFormValue, string>>;
+  serverErrors?: JobFormServerErrors;
 }>();
 
 const emit = defineEmits<{
   submit: [value: JobFormValue];
-  clearServerError: [field: 'vacancyUrl'];
+  clearServerError: [field: JobFormField];
 }>();
 
 const router = useRouter();
@@ -71,6 +77,23 @@ const clearErrors = () => {
   fieldErrors.value = {};
 };
 
+const clearFieldErrors = (fields: JobFormField | JobFormField[]) => {
+  const changedFields = Array.isArray(fields) ? fields : [fields];
+  const fieldsToClear = new Set(changedFields);
+
+  for (const field of changedFields) {
+    if (props.serverErrors?.[field]) {
+      emit('clearServerError', field);
+    }
+  }
+
+  fieldErrors.value = Object.fromEntries(
+    Object.entries(fieldErrors.value).filter(
+      ([field]) => !fieldsToClear.has(field as JobFormField),
+    ),
+  ) as Partial<Record<keyof JobFormValue, string>>;
+};
+
 const isValidUrl = (value: string) => {
   try {
     const url = new URL(value);
@@ -81,25 +104,53 @@ const isValidUrl = (value: string) => {
   }
 };
 
+const hasTextLimit = (field: keyof JobFormValue): field is JobTextField =>
+  field in jobTextFieldLimits;
+
+const isTooLong = (field: JobTextField, value: string) =>
+  value.trim().length > jobTextFieldLimits[field];
+
+const validateTextField = (
+  field: keyof JobFormValue,
+  value: string,
+  required = false,
+) => {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    if (required) {
+      fieldErrors.value[field] = jobValidationMessages.required(field);
+    }
+
+    return;
+  }
+
+  if (hasTextLimit(field) && isTooLong(field, value)) {
+    fieldErrors.value[field] = jobValidationMessages.maxLength(field);
+  }
+};
+
 const validateForm = () => {
   clearErrors();
 
-  if (!form.company.trim()) {
-    fieldErrors.value.company = 'Company is required';
-  }
-
-  if (!form.position.trim()) {
-    fieldErrors.value.position = 'Position is required';
-  }
+  validateTextField('company', form.company, true);
+  validateTextField('position', form.position, true);
+  validateTextField('source', form.source, true);
+  validateTextField('currency', form.currency);
+  validateTextField('location', form.location);
+  validateTextField(
+    'remoteType',
+    form.remoteType === 'NOT_SET' ? '' : form.remoteType,
+  );
+  validateTextField('notes', form.notes);
 
   if (!form.vacancyUrl.trim()) {
-    fieldErrors.value.vacancyUrl = 'Vacancy URL is required';
+    fieldErrors.value.vacancyUrl = jobValidationMessages.required('vacancyUrl');
   } else if (!isValidUrl(form.vacancyUrl)) {
-    fieldErrors.value.vacancyUrl = 'Enter a valid http or https URL';
-  }
-
-  if (!form.source.trim()) {
-    fieldErrors.value.source = 'Source is required';
+    fieldErrors.value.vacancyUrl =
+      jobValidationMessages.vacancyUrlInvalid('vacancyUrl');
+  } else if (isTooLong('vacancyUrl', form.vacancyUrl)) {
+    fieldErrors.value.vacancyUrl = jobValidationMessages.maxLength('vacancyUrl');
   }
 
   if (
@@ -107,8 +158,8 @@ const validateForm = () => {
     form.salaryMax !== null &&
     form.salaryMin > form.salaryMax
   ) {
-    fieldErrors.value.salaryMin = 'Min salary cannot exceed max salary';
-    fieldErrors.value.salaryMax = 'Max salary cannot be lower than min salary';
+    fieldErrors.value.salaryMin = jobValidationMessages.salaryMinTooHigh;
+    fieldErrors.value.salaryMax = jobValidationMessages.salaryMaxTooLow;
   }
 
   return Object.keys(fieldErrors.value).length === 0;
@@ -137,10 +188,68 @@ const onSubmit = () => {
 watch(
   () => form.vacancyUrl,
   () => {
-    if (props.serverErrors?.vacancyUrl) {
-      emit('clearServerError', 'vacancyUrl');
-    }
+    clearFieldErrors('vacancyUrl');
   },
+);
+
+watch(
+  () => form.company,
+  () => clearFieldErrors('company'),
+);
+
+watch(
+  () => form.position,
+  () => clearFieldErrors('position'),
+);
+
+watch(
+  () => form.status,
+  () => clearFieldErrors('status'),
+);
+
+watch(
+  () => form.source,
+  () => clearFieldErrors('source'),
+);
+
+watch(
+  () => form.salaryMin,
+  () => clearFieldErrors(['salaryMin', 'salaryMax']),
+);
+
+watch(
+  () => form.salaryMax,
+  () => clearFieldErrors(['salaryMin', 'salaryMax']),
+);
+
+watch(
+  () => form.currency,
+  () => clearFieldErrors('currency'),
+);
+
+watch(
+  () => form.location,
+  () => clearFieldErrors('location'),
+);
+
+watch(
+  () => form.remoteType,
+  () => clearFieldErrors('remoteType'),
+);
+
+watch(
+  () => form.notes,
+  () => clearFieldErrors('notes'),
+);
+
+watch(
+  () => form.appliedAt,
+  () => clearFieldErrors('appliedAt'),
+);
+
+watch(
+  () => form.nextFollowUpAt,
+  () => clearFieldErrors('nextFollowUpAt'),
 );
 
 const handleCancel = () => {
@@ -188,7 +297,7 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Status">
+      <UFormField label="Status" :error="getFieldError('status')">
         <USelectMenu
           v-model="form.status"
           :items="jobStatusOptions"
@@ -197,7 +306,7 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Remote type">
+      <UFormField label="Remote type" :error="getFieldError('remoteType')">
         <USelectMenu
           v-model="form.remoteType"
           :items="remoteTypeOptions"
@@ -206,7 +315,7 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Location">
+      <UFormField label="Location" :error="getFieldError('location')">
         <UInput
           v-model="form.location"
           class="w-full"
@@ -214,7 +323,7 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Currency">
+      <UFormField label="Currency" :error="getFieldError('currency')">
         <UInput v-model="form.currency" class="w-full" placeholder="USD" />
       </UFormField>
 
@@ -236,15 +345,18 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Applied date">
+      <UFormField label="Applied date" :error="getFieldError('appliedAt')">
         <UInput v-model="form.appliedAt" class="w-full" type="date" />
       </UFormField>
 
-      <UFormField label="Next follow-up">
+      <UFormField
+        label="Next follow-up"
+        :error="getFieldError('nextFollowUpAt')"
+      >
         <UInput v-model="form.nextFollowUpAt" class="w-full" type="date" />
       </UFormField>
 
-      <UFormField label="Notes" class="lg:col-span-2">
+      <UFormField label="Notes" class="lg:col-span-2" :error="getFieldError('notes')">
         <UTextarea
           v-model="form.notes"
           class="w-full"

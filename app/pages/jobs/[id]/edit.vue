@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { toDateInput, type JobApplication } from '~/utils/job-applications';
+import { handleApiFormError } from '~/utils/form-errors';
+import {
+  jobFormFields,
+  type JobFormField,
+  type JobFormServerErrors,
+} from '~/utils/job-form-errors';
 
 const route = useRoute();
 const router = useRouter();
@@ -7,12 +13,19 @@ const toast = useToast();
 const id = computed(() => String(route.params.id));
 const updateEndpoint = computed(() => `/api/jobs/${id.value}`);
 const pending = ref(false);
-const serverFieldErrors = ref<{ vacancyUrl?: string }>({});
+const serverFieldErrors = ref<JobFormServerErrors>({});
 
-const clearServerError = (field: 'vacancyUrl') => {
+const clearServerError = (field: keyof JobFormServerErrors) => {
   serverFieldErrors.value = {
     ...serverFieldErrors.value,
     [field]: undefined,
+  };
+};
+
+const setServerError = (field: JobFormField, message: string) => {
+  serverFieldErrors.value = {
+    ...serverFieldErrors.value,
+    [field]: message,
   };
 };
 
@@ -56,22 +69,18 @@ const updateJob = async (value: Record<string, unknown>) => {
     await router.push(`/jobs/${id.value}`);
   } catch (updateError) {
     if (
-      typeof updateError === 'object' &&
-      updateError !== null &&
-      'statusCode' in updateError &&
-      (updateError as { statusCode?: number }).statusCode === 409
+      handleApiFormError({
+        error: updateError,
+        fields: jobFormFields,
+        setFieldError: setServerError,
+        showToast: (message) => {
+          toast.add({ title: message, color: 'error' });
+        },
+        fallbackMessage: 'Failed to update application',
+      })
     ) {
-      serverFieldErrors.value = {
-        vacancyUrl: 'Такая ссылка на вакансию уже есть',
-      };
       return;
     }
-
-    const errorMessage =
-      updateError instanceof Error
-        ? updateError.message
-        : 'Failed to update application';
-    toast.add({ title: errorMessage, color: 'error' });
   } finally {
     pending.value = false;
   }

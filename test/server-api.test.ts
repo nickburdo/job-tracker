@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+﻿import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
@@ -10,6 +10,8 @@ import {
   updateJobApplication,
 } from '../server/utils/job-api';
 import { parseJobPayload, parseJobUpdatePayload } from '../server/utils/jobs';
+import { extractApiFormFieldErrors, handleApiFormError } from '../app/utils/form-errors';
+import { jobFormFields } from '../app/utils/job-form-errors';
 
 type PrismaStubOptions = {
   findManyResult?: unknown;
@@ -86,6 +88,7 @@ const expectHttpError = async (
   fn: () => Promise<unknown> | unknown,
   statusCode: number,
   statusMessage: string,
+  expectedFieldErrors?: Record<string, string>,
 ) => {
   try {
     await fn();
@@ -93,17 +96,25 @@ const expectHttpError = async (
   } catch (error) {
     assert.equal((error as { statusCode?: number }).statusCode, statusCode);
     assert.equal(
-      (error as { statusMessage?: string }).statusMessage,
+      (error as { statusMessage?: string; message?: string }).statusMessage ??
+        (error as { message?: string }).message,
       statusMessage,
     );
+    if (expectedFieldErrors) {
+      assert.deepEqual(
+        (error as { data?: { fieldErrors?: Record<string, string> } }).data
+          ?.fieldErrors,
+        expectedFieldErrors,
+      );
+    }
   }
 };
 
 test('parseJobPayload trims fields and parses dates', () => {
   const payload = parseJobPayload({
     company: '  OpenAI  ',
-    position: '  Frontend Engineer ',
-    vacancyUrl: ' https://example.com ',
+    position: '  Frontend ',
+    vacancyUrl: ' abc ',
     status: 'OFFER',
     source: '  LinkedIn ',
     salaryMin: '100000',
@@ -118,8 +129,8 @@ test('parseJobPayload trims fields and parses dates', () => {
 
   assert.deepEqual(payload, {
     company: 'OpenAI',
-    position: 'Frontend Engineer',
-    vacancyUrl: 'https://example.com',
+    position: 'Frontend',
+    vacancyUrl: 'abc',
     status: 'OFFER',
     source: 'LinkedIn',
     salaryMin: 100000,
@@ -133,15 +144,172 @@ test('parseJobPayload trims fields and parses dates', () => {
   });
 });
 
+test('parseJobPayload rejects text fields longer than limit', () => {
+  assert.throws(
+    () =>
+      parseJobPayload({
+        company: 'x'.repeat(51),
+        position: 'Frontend',
+        vacancyUrl: 'abc',
+        status: 'SAVED',
+        source: 'LinkedIn',
+      }),
+    (error: unknown) =>
+      (error as { statusCode?: number; statusMessage?: string; message?: string }).statusCode ===
+        422 &&
+      ((error as { statusMessage?: string; message?: string }).statusMessage ??
+        (error as { message?: string }).message) ===
+        'Company must be at most 50 characters',
+  );
+});
+
+test('createJobApplication returns field errors for invalid payload', async () => {
+  const { prisma } = buildPrismaStub();
+
+  await expectHttpError(
+    () =>
+      createJobApplication(prisma, {
+        company: 'x'.repeat(51),
+        position: 'Frontend',
+        vacancyUrl: 'abc',
+        status: 'SAVED',
+        source: 'LinkedIn',
+      }),
+    422,
+    'Company must be at most 50 characters',
+    {
+      company: 'Company must be at most 50 characters',
+    },
+  );
+});
+
 test('parseJobUpdatePayload rejects empty updates', () => {
   assert.throws(
     () => parseJobUpdatePayload({}),
     (error: unknown) =>
-      (error as { statusCode?: number; statusMessage?: string }).statusCode ===
-        400 &&
-      (error as { statusMessage?: string }).statusMessage ===
+      (error as { statusCode?: number; statusMessage?: string; message?: string }).statusCode ===
+        422 &&
+      ((error as { statusMessage?: string; message?: string }).statusMessage ??
+        (error as { message?: string }).message) ===
         'No fields to update',
   );
+});
+
+test('parseJobUpdatePayload rejects text fields longer than limit', () => {
+  assert.throws(
+    () =>
+      parseJobUpdatePayload({
+        notes: 'x'.repeat(501),
+      }),
+    (error: unknown) =>
+      (error as { statusCode?: number; statusMessage?: string; message?: string }).statusCode ===
+        422 &&
+      ((error as { statusMessage?: string; message?: string }).statusMessage ??
+        (error as { message?: string }).message) ===
+        'Notes must be at most 500 characters',
+  );
+});
+
+test('extractApiFormFieldErrors reads nested API field errors', () => {
+  assert.deepEqual(
+    extractApiFormFieldErrors({
+      statusCode: 422,
+      data: {
+        statusCode: 422,
+        statusMessage: 'Validation failed',
+        data: {
+          fieldErrors: {
+            vacancyUrl: 'Vacancy URL already exists',
+          },
+        },
+      },
+    }),
+    {
+      vacancyUrl: 'Vacancy URL already exists',
+    },
+  );
+});
+
+test('handleApiFormError maps field errors to matching form fields', () => {
+  const serverErrors: Record<string, string> = {};
+  const toastMessages: string[] = [];
+
+  const handled = handleApiFormError({
+    error: {
+      statusCode: 422,
+      data: {
+        fieldErrors: {
+          vacancyUrl: 'Ð¢Ð°ÐºÐ°Ñ ÑÑÑ‹Ð»ÐºÐ° Ð½Ð° Ð²Ð°ÐºÐ°Ð½ÑÐ¸ÑŽ ÑƒÐ¶Ðµ ÐµÑÑ‚ÑŒ',
+        },
+      },
+    },
+    fields: jobFormFields,
+    setFieldError: (field, message) => {
+      serverErrors[field] = message;
+    },
+    showToast: (message) => {
+      toastMessages.push(message);
+    },
+  });
+
+  assert.equal(handled, true);
+  assert.deepEqual(serverErrors, {
+    vacancyUrl: 'Ð¢Ð°ÐºÐ°Ñ ÑÑÑ‹Ð»ÐºÐ° Ð½Ð° Ð²Ð°ÐºÐ°Ð½ÑÐ¸ÑŽ ÑƒÐ¶Ðµ ÐµÑÑ‚ÑŒ',
+  });
+  assert.deepEqual(toastMessages, []);
+});
+
+test('handleApiFormError shows toast when no fields match', () => {
+  const serverErrors: Record<string, string> = {};
+  const toastMessages: string[] = [];
+
+  const handled = handleApiFormError({
+    error: {
+      statusCode: 422,
+      data: {
+        fieldErrors: {
+          unknownField: 'Broken',
+        },
+      },
+    },
+    fields: jobFormFields,
+    setFieldError: (field, message) => {
+      serverErrors[field] = message;
+    },
+    showToast: (message) => {
+      toastMessages.push(message);
+    },
+  });
+
+  assert.equal(handled, false);
+  assert.deepEqual(serverErrors, {});
+  assert.deepEqual(toastMessages, ['Failed to save form']);
+});
+
+test('handleApiFormError shows toast when fields are not provided', () => {
+  const serverErrors: Record<string, string> = {};
+  const toastMessages: string[] = [];
+
+  const handled = handleApiFormError({
+    error: {
+      statusCode: 422,
+      data: {
+        fieldErrors: {
+          vacancyUrl: 'Ð¢Ð°ÐºÐ°Ñ ÑÑÑ‹Ð»ÐºÐ° Ð½Ð° Ð²Ð°ÐºÐ°Ð½ÑÐ¸ÑŽ ÑƒÐ¶Ðµ ÐµÑÑ‚ÑŒ',
+        },
+      },
+    },
+    setFieldError: (field, message) => {
+      serverErrors[field] = message;
+    },
+    showToast: (message) => {
+      toastMessages.push(message);
+    },
+  });
+
+  assert.equal(handled, false);
+  assert.deepEqual(serverErrors, {});
+  assert.deepEqual(toastMessages, ['Failed to save form']);
 });
 
 test('listJobApplications applies filters and sort order', async () => {
@@ -271,7 +439,7 @@ test('listJobApplications rejects invalid status', async () => {
   await expectHttpError(
     () => listJobApplications(prisma, { status: 'BROKEN' }),
     400,
-    'status is invalid',
+    'Status is invalid',
   );
 });
 
@@ -423,8 +591,8 @@ test('createJobApplication creates parsed payload', async () => {
 
   const result = await createJobApplication(prisma, {
     company: 'OpenAI',
-    position: 'Frontend Engineer',
-    vacancyUrl: 'https://example.com',
+    position: 'Frontend',
+    vacancyUrl: 'abc',
     status: 'SAVED',
     source: 'LinkedIn',
     notes: 'Nice role',
@@ -436,8 +604,8 @@ test('createJobApplication creates parsed payload', async () => {
   assert.deepEqual(calls.create[0], {
     data: {
       company: 'OpenAI',
-      position: 'Frontend Engineer',
-      vacancyUrl: 'https://example.com',
+      position: 'Frontend',
+      vacancyUrl: 'abc',
       status: 'SAVED',
       source: 'LinkedIn',
       salaryMin: null,
@@ -454,20 +622,23 @@ test('createJobApplication creates parsed payload', async () => {
 
 test('createJobApplication rejects duplicate vacancy URL', async () => {
   const { prisma, calls } = buildPrismaStub({
-    findManyResults: [[{ id: 'job_existing', vacancyUrl: 'https://example.com/jobs/1?foo=bar' }]],
+    findManyResults: [[{ id: 'job_existing', vacancyUrl: 'abc?x=1' }]],
   });
 
   await expectHttpError(
     () =>
       createJobApplication(prisma, {
         company: 'OpenAI',
-        position: 'Frontend Engineer',
-        vacancyUrl: 'https://example.com/jobs/1?baz=qux',
+        position: 'Frontend',
+        vacancyUrl: 'abc?y=2',
         status: 'SAVED',
         source: 'LinkedIn',
       }),
-    409,
+    422,
     'Vacancy URL already exists',
+    {
+      vacancyUrl: 'Vacancy URL already exists',
+    },
   );
 
   assert.equal(calls.findMany.length, 1);
@@ -512,16 +683,19 @@ test('updateJobApplication updates parsed payload', async () => {
 test('updateJobApplication rejects duplicate vacancy URL', async () => {
   const { prisma, calls } = buildPrismaStub({
     findUniqueResults: [{ id: 'job_1' }],
-    findManyResults: [[{ id: 'job_other', vacancyUrl: 'https://example.com/jobs/1?foo=bar' }]],
+    findManyResults: [[{ id: 'job_other', vacancyUrl: 'abc?x=1' }]],
   });
 
   await expectHttpError(
     () =>
       updateJobApplication(prisma, 'job_1', {
-        vacancyUrl: 'https://example.com/jobs/1?baz=qux',
+        vacancyUrl: 'abc?y=2',
       }),
-    409,
+    422,
     'Vacancy URL already exists',
+    {
+      vacancyUrl: 'Vacancy URL already exists',
+    },
   );
 
   assert.equal(calls.findUnique.length, 1);
@@ -565,3 +739,4 @@ test('deleteJobApplication returns 404 when job is missing', async () => {
     'Job application not found',
   );
 });
+

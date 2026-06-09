@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 enum JobApplicationStatus {
@@ -40,4 +40,6 @@ model JobApplication {
   @@index([status])
   @@index([company])
   @@index([createdAt])
+
+  @@map("job_tracker_job_applications")
 }

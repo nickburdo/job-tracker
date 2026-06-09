@@ -20,7 +20,7 @@ const formatField = (field: string) => fieldLabels[field] ?? field;
 export const jobTextFieldLimits = {
   company: 50,
   position: 100,
-  vacancyUrl: 200,
+  vacancyUrl: 500,
   location: 100,
   currency: 20,
   notes: 500,

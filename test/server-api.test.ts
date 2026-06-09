@@ -210,6 +210,25 @@ test('parseJobUpdatePayload rejects text fields longer than limit', () => {
   );
 });
 
+test('parseJobPayload rejects long vacancy URL', () => {
+  assert.throws(
+    () =>
+      parseJobPayload({
+        company: 'OpenAI',
+        position: 'Frontend',
+        vacancyUrl: `https://example.com/${'a'.repeat(481)}`,
+        status: 'SAVED',
+        source: 'LinkedIn',
+      }),
+    (error: unknown) =>
+      (error as { statusCode?: number; statusMessage?: string; message?: string }).statusCode ===
+        422 &&
+      ((error as { statusMessage?: string; message?: string }).statusMessage ??
+        (error as { message?: string }).message) ===
+        'Vacancy URL must be at most 500 characters',
+  );
+});
+
 test('extractApiFormFieldErrors reads nested API field errors', () => {
   assert.deepEqual(
     extractApiFormFieldErrors({

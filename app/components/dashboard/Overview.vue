@@ -1,32 +1,35 @@
 <script setup lang="ts">
-import { interviewStatuses } from '~/utils/job-statuses';
 import {
   isFollowUpOverdue,
   type JobApplication,
+  type JobMetaResponse,
 } from '~/utils/job-applications';
 
-const props = defineProps<{ jobs: JobApplication[] }>();
-const totalJobs = computed(() => props.jobs.length);
+const props = defineProps<{
+  jobs: JobApplication[];
+  stats: JobMetaResponse['stats'] | undefined;
+}>();
+
 const overdueFollowUps = computed(() =>
   props.jobs.filter((job) => isFollowUpOverdue(job.nextFollowUpAt)),
 );
 
-const stats = computed(() => {
-  const total = totalJobs.value;
-  const interviews = props.jobs.filter((job) =>
-    interviewStatuses.has(job.status),
-  ).length;
-  const offers = props.jobs.filter((job) => job.status === 'OFFER').length;
-  const rejected = props.jobs.filter((job) => job.status === 'REJECTED').length;
+const formatPercent = (value: number) =>
+  `${new Intl.NumberFormat('en', {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  }).format(value)}`;
 
-  return {
-    total,
-    interviews,
-    offers,
-    rejected,
-    overdue: overdueFollowUps.value.length,
-  };
-});
+const stats = computed(() => ({
+  total: props.stats?.total ?? 0,
+  interviews: props.stats?.interviews ?? 0,
+  offers: props.stats?.offers ?? 0,
+  rejected: props.stats?.rejections ?? 0,
+  interviewRate: props.stats?.interviewRate ?? 0,
+  offerRate: props.stats?.offerRate ?? 0,
+  rejectionRate: props.stats?.rejectionRate ?? 0,
+  overdue: overdueFollowUps.value.length,
+}));
 
 const statCardClass = (value: number) => [
   'rounded-lg border p-4 transition-colors',
@@ -34,48 +37,49 @@ const statCardClass = (value: number) => [
     ? 'border-default bg-elevated'
     : 'border-dashed border-default bg-muted/20',
 ];
+
+const statsCards = computed(() => [
+  {
+    label: 'Total applications',
+    value: stats.value.total,
+  },
+  {
+    label: 'Active interviews',
+    value: stats.value.interviews,
+    subtitle: `${formatPercent(stats.value.interviewRate)} conversion rate`,
+  },
+  {
+    label: 'Offers',
+    value: stats.value.offers,
+    subtitle: `${formatPercent(stats.value.offerRate)} conversion rate`,
+  },
+  {
+    label: 'Rejected',
+    value: stats.value.rejected,
+    subtitle: `${formatPercent(stats.value.rejectionRate)} conversion rate`,
+  },
+  {
+    label: 'Overdue follow-ups',
+    value: stats.value.overdue,
+  },
+]);
 </script>
 
 <template>
   <section class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-    <div :class="statCardClass(stats.total)">
+    <div
+      v-for="card in statsCards"
+      :key="card.label"
+      :class="statCardClass(card.value)"
+    >
       <p class="text-xs font-medium uppercase tracking-wide text-muted">
-        Total applications
+        {{ card.label }}
       </p>
       <p class="mt-3 text-3xl font-semibold text-highlighted">
-        {{ stats.total }}
+        {{ card.value }}
       </p>
-    </div>
-    <div :class="statCardClass(stats.interviews)">
-      <p class="text-xs font-medium uppercase tracking-wide text-muted">
-        Active interviews
-      </p>
-      <p class="mt-3 text-3xl font-semibold text-highlighted">
-        {{ stats.interviews }}
-      </p>
-    </div>
-    <div :class="statCardClass(stats.offers)">
-      <p class="text-xs font-medium uppercase tracking-wide text-muted">
-        Offers
-      </p>
-      <p class="mt-3 text-3xl font-semibold text-highlighted">
-        {{ stats.offers }}
-      </p>
-    </div>
-    <div :class="statCardClass(stats.rejected)">
-      <p class="text-xs font-medium uppercase tracking-wide text-muted">
-        Rejected
-      </p>
-      <p class="mt-3 text-3xl font-semibold text-highlighted">
-        {{ stats.rejected }}
-      </p>
-    </div>
-    <div :class="statCardClass(stats.overdue)">
-      <p class="text-xs font-medium uppercase tracking-wide text-muted">
-        Overdue follow-ups
-      </p>
-      <p class="mt-3 text-3xl font-semibold text-highlighted">
-        {{ stats.overdue }}
+      <p v-if="card.subtitle" class="mt-2 text-xs text-muted">
+        {{ card.subtitle }}
       </p>
     </div>
   </section>

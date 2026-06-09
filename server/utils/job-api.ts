@@ -247,6 +247,7 @@ export const getJobMeta = async (
     (sum, status) => sum + (countByStatus.get(status) ?? 0),
     0,
   );
+  const safeTotal = total > 0 ? total : 1;
 
   return {
     companies: typedCompanies.map((row) => row.company),
@@ -256,6 +257,16 @@ export const getJobMeta = async (
       interviews,
       offers: countByStatus.get(JobApplicationStatus.OFFER) ?? 0,
       rejections: countByStatus.get(JobApplicationStatus.REJECTED) ?? 0,
+      interviewRate: total > 0 ? interviews / safeTotal : 0,
+      offerRate:
+        total > 0
+          ? (countByStatus.get(JobApplicationStatus.OFFER) ?? 0) / safeTotal
+          : 0,
+      rejectionRate:
+        total > 0
+          ? (countByStatus.get(JobApplicationStatus.REJECTED) ?? 0) /
+            safeTotal
+          : 0,
     },
   };
 };

@@ -4,15 +4,26 @@
 
 Build a personal job application tracker that is practical for daily job search and polished enough for a portfolio demo. The MVP opens on a dense, searchable applications list and uses English UI copy. No authentication in v1.
 
+## MVP Status
+
+- [x] Single-user app with no authentication.
+- [x] Dense applications list as the first screen, with search, status filter, company filter, and links to create/edit/detail views.
+- [x] Fixed status workflow in the app and database.
+- [x] Recruiter/contact details stored in `notes` instead of a separate model.
+- [x] Passive follow-up date support with `nextFollowUpAt`.
+- [x] Prisma seed data with realistic demo applications.
+- [x] Basic analytics cards for total applications, interviews, offers, and rejections.
+- [x] Conversion rate cards or equivalent conversion-rate analytics.
+
 ## Key Product Decisions
 
 - Primary user: one person managing their own job search.
-- First screen: job applications list with search, status filter, company filter, quick status visibility, and links to create/edit/detail views.
-- Statuses: fixed list from the summary: `Saved`, `Applied`, `Screening`, `Technical Interview`, `Final Interview`, `Offer`, `Rejected`, `Archived`.
-- Contacts/recruiters: no separate contact model in MVP; store relevant communication details in `notes`.
-- Follow-ups: one `nextFollowUpAt` date per application; show overdue/upcoming state in list and dashboard.
-- Demo mode: add Prisma seed data with realistic sample applications for portfolio presentation.
-- Analytics: basic stat cards only: total applications, interviews, offers, rejections, and conversion rates.
+- First screen: job applications list with search, status filter, company filter, quick status visibility, and links to create/edit/detail views. [x]
+- Statuses: fixed list from the summary: `Saved`, `Applied`, `Screening`, `Technical Interview`, `Final Interview`, `Offer`, `Rejected`, `Archived`. [x]
+- Contacts/recruiters: no separate contact model in MVP; store relevant communication details in `notes`. [x]
+- Follow-ups: one `nextFollowUpAt` date per application; show overdue/upcoming state in list and dashboard. [x]
+- Demo mode: add Prisma seed data with realistic sample applications for portfolio presentation. [x]
+- Analytics: basic stat cards only: total applications, interviews, offers, rejections, and conversion rates. [x]
 
 ## Implementation Shape
 

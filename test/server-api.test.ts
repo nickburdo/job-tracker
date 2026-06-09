@@ -527,6 +527,9 @@ test('getJobMeta returns companies, statuses and stats', async () => {
       interviews: 3,
       offers: 4,
       rejections: 5,
+      interviewRate: 0.2,
+      offerRate: 4 / 15,
+      rejectionRate: 5 / 15,
     },
   });
   assert.equal(calls.findMany.length, 2);
@@ -580,6 +583,29 @@ test('getJobMeta returns companies, statuses and stats', async () => {
     },
     _count: {
       _all: true,
+    },
+  });
+});
+
+test('getJobMeta returns zero conversion rates when there are no jobs', async () => {
+  const { prisma } = buildPrismaStub({
+    findManyResults: [[], []],
+    groupByResult: [],
+  });
+
+  const result = await getJobMeta(prisma);
+
+  assert.deepEqual(result, {
+    companies: [],
+    statuses: [],
+    stats: {
+      total: 0,
+      interviews: 0,
+      offers: 0,
+      rejections: 0,
+      interviewRate: 0,
+      offerRate: 0,
+      rejectionRate: 0,
     },
   });
 });

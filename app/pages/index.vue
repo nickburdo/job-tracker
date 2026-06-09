@@ -2,6 +2,7 @@
 import type {
   JobApplication,
   JobApplicationsResponse,
+  JobMetaResponse,
 } from '~/utils/job-applications';
 
 const dashboardPageSize = 100;
@@ -38,6 +39,9 @@ const {
   return jobs;
 });
 
+const { data: dashboardMeta } =
+  await useFetch<JobMetaResponse>('/api/jobs/meta');
+
 const toast = useToast();
 const hasShownErrorToast = ref(false);
 
@@ -65,9 +69,6 @@ const jobs = computed(() => allJobs.value ?? []);
         class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
       >
         <div class="max-w-3xl">
-          <p class="text-sm font-medium uppercase tracking-wide text-muted">
-            Overview
-          </p>
           <h1
             class="mt-2 text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl"
           >
@@ -102,7 +103,7 @@ const jobs = computed(() => allJobs.value ?? []);
         </div>
       </section>
 
-      <DashboardOverview :jobs="jobs" />
+      <DashboardOverview :jobs="jobs" :stats="dashboardMeta?.stats" />
 
       <section class="grid gap-4 xl:grid-cols-2">
         <DashboardFollowUpQueue :jobs="jobs" :pending="pending" />

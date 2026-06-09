@@ -104,7 +104,6 @@ Database schema, migrations, and seed data.
 
 Project documentation.
 
-- `docs/implementation-steps.md`: step-by-step implementation plan with rough time estimates.
 - `docs/job-application-statuses.md`: status reference, meanings, quick status change behavior, and how to update statuses in code/database.
 - `docs/job-tracker-mvp-plan.md`: MVP plan and stack notes.
 - `docs/job-tracker-summary.md`: high-level project summary.

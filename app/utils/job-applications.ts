@@ -35,6 +35,9 @@ export type JobMetaResponse = {
     interviews: number;
     offers: number;
     rejections: number;
+    interviewRate: number;
+    offerRate: number;
+    rejectionRate: number;
   };
 };
 

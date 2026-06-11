@@ -31,3 +31,4 @@ AGENTS.locale.md
 .env
 .env.*
 !.env.example
+/db_backup/

@@ -2,37 +2,37 @@
 
 ## Create Google Cloud OAuth Client
 
-- Зайти в [Google Cloud Console](https://console.cloud.google.com?utm_source=chatgpt.com)
-- APIs & Services → Credentials → Create Credentials → OAuth Client ID
-- Выбрать Application type (Web application)
-- Ввести имя 
-- Открыть в другой вкладке Supabase → Authentication → Sign In/Providers → Google
-- Скопировать Callback URL из Supabase в поле `Authorized redirect URIs` в Google Cloud
-- Скопировать этот же URI также в поле `Authorized JavaScript origins` в Google Cloud и удалить `/auth/v1/callback` в конце (оставить только домен Supabase проекта)
-- Создать OAuth Client
-- Скопировать `Client ID` и `Client secret` в соответствующие поля Google провайдера в Supabase
-- Включить `Enable Sign in with Google` в Supabase и сохранить провайдер 
+- [x] Зайти в [Google Cloud Console](https://console.cloud.google.com?utm_source=chatgpt.com)
+- [x] APIs & Services → Credentials → Create Credentials → OAuth Client ID
+- [x] Выбрать Application type (Web application)
+- [x] Ввести имя 
+- [x] Открыть в другой вкладке Supabase → Authentication → Sign In/Providers → Google
+- [x] Скопировать Callback URL из Supabase в поле `Authorized redirect URIs` в Google Cloud
+- [x] Скопировать этот же URI также в поле `Authorized JavaScript origins` в Google Cloud и удалить `/auth/v1/callback` в конце (оставить только домен Supabase проекта)
+- [x] Создать OAuth Client
+- [x] Скопировать `Client ID` и `Client secret` в соответствующие поля Google провайдера в Supabase
+- [x] Включить `Enable Sign in with Google` в Supabase и сохранить провайдер 
 
 ## Configure Supabase
 
 ### Authentication -> Sign In/Providers:
 
-Проверить включение провайдеров:
+[x] Проверить включение провайдеров:
 - Email (включен по умолчанию)
 - Google (включен в предыдущем разделе)
 
 ### Authentication -> URL Configuration:
 
-Site URL:
+-[x] Site URL:
 http://localhost:3000
 
-Redirect URLs:
+-[x] Redirect URLs:
 http://localhost:3000/**
 https://твой-домен/**
 
 ## Add DB column
 
-- добавить в схему новую колонку:
+-[x] добавить в схему новую колонку:
 
 `prisma/schema.prisma`: 
 ```prisma
@@ -42,16 +42,16 @@ model JobApplication {
 }
 ```
 
-- запустить миграцию
+-[x]  запустить миграцию
 ```bash
 npx prisma migrate dev --name add_is_demo
 ```
 
 ## Fix Admin
 
-- Создать/впустить админа через Supabase Auth
-- Взять UUID админа из Authentication → Users
-- В SQL editor выполнить:
+-[x] Создать/впустить админа через Supabase Auth
+-[x] Взять UUID админа из Authentication → Users
+-[x] Заменить `PASTE_ADMIN_SUPABASE_USER_ID_HERE` на UUID и выполнить в SQL editor:
 ```
 create schema if not exists private;
 
@@ -61,7 +61,7 @@ insert into private.admin_users (user_id)
 values ('PASTE_ADMIN_SUPABASE_USER_ID_HERE')
     on conflict do nothing;
 ```
-- проверить:
+-[x] проверить:
 ```
 select * from private.admin_users;
 ```
@@ -69,7 +69,7 @@ select * from private.admin_users;
 
 ## RLS for table
 
-- создать функцию `private.is_admin()` (выполнить в SQL Editor):
+-[x] создать функцию `private.is_admin()` (выполнить в SQL Editor):
 ```
 create or replace function private.is_admin()
 returns boolean
@@ -84,14 +84,14 @@ select exists (
 );
 $$;
 ```
--  Включить RLS (выполнить в SQL Editor):
+-[x] Включить RLS (выполнить в SQL Editor):
 ```
 alter table public."job_tracker_job_applications"
 enable row level security;
 ```
-Создать политики  (выполнить в SQL Editor):
+- Создать политики  (выполнить в SQL Editor):
 
-- `read`  
+-[x] `read`  
 ```
 drop policy if exists "guest can read demo jobs"
 on public."job_tracker_job_applications";
@@ -112,7 +112,7 @@ for select
 to authenticated
 using (private.is_admin());
 ``` 
-- `guest insert`
+-[x] `guest insert`
 ```
 drop policy if exists "guest can insert demo jobs"
 on public."job_tracker_job_applications";
@@ -123,7 +123,7 @@ for insert
 to anon
 with check ("isDemo" = true);
 ```
-- `guest update`
+-[x] `guest update`
 ```
 drop policy if exists "guest can update demo jobs"
 on public."job_tracker_job_applications";
@@ -135,7 +135,7 @@ to anon
 using ("isDemo" = true)
 with check ("isDemo" = true);
 ```
-- `guest delete`
+-[x] `guest delete`
 ```
 drop policy if exists "guest can delete demo jobs"
 on public."job_tracker_job_applications";
@@ -146,7 +146,7 @@ for delete
 to anon
 using ("isDemo" = true);
 ```
-- `admin write`
+-[x] `admin write`
 ```
 drop policy if exists "admin can write all jobs"
 on public."job_tracker_job_applications";
@@ -163,7 +163,7 @@ with check (private.is_admin());
 
 В API реализовать:
 
-- для `guest`: всегда добавлять where: { isDemo: true }
-- для `guest` create/update: принудительно isDemo: true
-- для `admin`: проверять `Supabase session/JWT` на сервере
-- не доверять фронту
+-[ ] для `guest`: всегда добавлять where: { isDemo: true }
+-[ ] для `guest` create/update: принудительно isDemo: true
+-[ ] для `admin`: проверять `Supabase session/JWT` на сервере
+-[ ] не доверять фронту

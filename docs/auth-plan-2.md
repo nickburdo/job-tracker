@@ -161,6 +161,31 @@ with check (private.is_admin());
 
 ## API update
 
+-[x] установить Nuxt Supabase:
+```bash
+npm install @nuxtjs/supabase
+```
+-[x] добавить в файл `nuxt.config.ts`:
+```typescript
+export default defineNuxtConfig({
+  // ...
+  modules: [/* ... */'@nuxtjs/supabase'],
+  // ...
+  supabase: {
+    redirect: false,
+  },
+})
+```
+-[x] скопировать из `Supabase` URL публичный кюч и добавить в файл `.env`:
+```dotenv
+NUXT_PUBLIC_SUPABASE_URL=...
+NUXT_PUBLIC_SUPABASE_KEY=...
+```
+`Supabase -> Project Overview` под именем проекта будет URL и справа кнопка `Copy`  
+Там будет и URL и публичный ключ
+
+-[ ]
+
 В API реализовать:
 
 -[ ] для `guest`: всегда добавлять where: { isDemo: true }

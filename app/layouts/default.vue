@@ -15,7 +15,9 @@ import MainMenu from '~/components/layouts/default/MainMenu.vue';
         </div>
 
         <div class="flex items-center gap-2">
-          <AuthLogout />
+          <ClientOnly>
+            <AuthLogout />
+          </ClientOnly>
 
           <UButton to="/jobs/new" icon="i-lucide-plus" size="sm">
             New application

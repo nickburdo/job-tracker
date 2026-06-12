@@ -25,6 +25,9 @@ export default defineNuxtConfig({
       ],
     },
   },
+  routeRules: {
+    '/auth/callback': { ssr: false },
+  },
   supabase: {
     redirect: false,
   },

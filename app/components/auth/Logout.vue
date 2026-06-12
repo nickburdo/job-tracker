@@ -23,8 +23,6 @@ const signOut = async () => {
     if (error) {
       throw error;
     }
-
-    await refreshNuxtData();
   } catch (error) {
     showError(error, 'Failed to sign out');
   } finally {

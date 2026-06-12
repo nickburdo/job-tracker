@@ -259,13 +259,18 @@ const applications = [
   },
 ];
 
+const seedApplications = applications.map((application) => ({
+  ...application,
+  isDemo: true,
+}));
+
 async function main() {
-  await prisma.jobApplication.deleteMany();
   await prisma.jobApplication.createMany({
-    data: applications,
+    data: seedApplications,
+    skipDuplicates: true,
   });
 
-  console.log(`Seeded ${applications.length} job applications.`);
+  console.log(`Seeded ${seedApplications.length} job applications.`);
 }
 
 main()

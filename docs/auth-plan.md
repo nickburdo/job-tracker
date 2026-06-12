@@ -1,118 +1,217 @@
-# Auth Implementation Plan
+# Authentication Plan
 
-## 1. Подготовить Supabase
+## Create Google Cloud OAuth Client
 
-- [x] Создать или проверить проект в Supabase.
-- [x] Включить нужные auth providers:
-  -  email/password;
-  -  Google OAuth.
-- [x] Настроить redirect URLs для локальной разработки и продакшена.
-- [ ] Создать админский аккаунт в Supabase Auth.
-- [ ] Зафиксировать один разрешенный Google-аккаунт для админа:
-  - allowlist по `user.id`;
-- [ ] Определить, где хранится allowlist и кто его проверяет: приложение, SQL-функция или оба слоя.
+- [x] Зайти в [Google Cloud Console](https://console.cloud.google.com?utm_source=chatgpt.com)
+- [x] APIs & Services → Credentials → Create Credentials → OAuth Client ID
+- [x] Выбрать Application type (Web application)
+- [x] Ввести имя 
+- [x] Открыть в другой вкладке Supabase → Authentication → Sign In/Providers → Google
+- [x] Скопировать Callback URL из Supabase в поле `Authorized redirect URIs` в Google Cloud
+- [x] Скопировать этот же URI также в поле `Authorized JavaScript origins` в Google Cloud и удалить `/auth/v1/callback` в конце (оставить только домен Supabase проекта)
+- [x] Создать OAuth Client
+- [x] Скопировать `Client ID` и `Client secret` в соответствующие поля Google провайдера в Supabase
+- [x] Включить `Enable Sign in with Google` в Supabase и сохранить провайдер 
 
-## 2. Обновить схему БД
+## Configure Supabase
 
-- [x] Добавить в основную таблицу поле `isDemo boolean not null default false`.
-- [x] Проверить, что все демо-записи помечены `isDemo = true`.
-- [x] Проверить, что все приватные записи помечены `isDemo = false`.
-- [ ] Решить, нужны ли отдельные индексы по `isDemo`.
-- [ ] Убедиться, что миграция не удаляет и не пересоздает таблицу.
-- [ ] Убедиться, что миграция не повреждает существующие актуальные данные.
--  Перед рискованными шагами сделать export в Supabase.
+### Authentication -> Sign In/Providers:
 
-## 3. Зафиксировать модель доступа
+[x] Проверить включение провайдеров:
+- Email (включен по умолчанию)
+- Google (включен в предыдущем разделе)
 
-- [ ] Зафиксировать, что есть только два режима:
-  -  `guest`;
-  -  `admin`.
-- [ ] Зафиксировать, что `guest` видит только демо.
-- [ ] Зафиксировать, что `admin` видит все, включая демо.
-- [ ] Зафиксировать, что отдельной `user`-роли нет.
-- [ ] Зафиксировать, что Google-вход разрешен только одному аккаунту.
+### Authentication -> URL Configuration:
 
-## 4. Настроить RLS в Supabase
+-[x] Site URL:
+http://localhost:3000
 
-- [ ] Включить `RLS` на всех таблицах с пользовательскими данными.
-- [ ] Добавить SQL-функцию `is_admin()`:
-  - [ ] она должна проверять текущую `auth.uid()`;
-  - [ ] она должна сверять пользователя с allowlist;
-  - [ ] она должна возвращать `true` только для одного разрешенного аккаунта.
-- [ ] Добавить политику `SELECT` для `guest`: только `isDemo = true`.
-- [ ] Добавить политику `SELECT` для `admin`: все строки.
-- [ ] Добавить политику `INSERT` для `guest`: только `isDemo = true`.
-- [ ] Добавить политику `INSERT` для `admin`: любые строки.
-- [ ] Добавить политики `UPDATE` и `DELETE` для `guest`: только `isDemo = true`.
-- [ ] Добавить политики `UPDATE` и `DELETE` для `admin`: любые строки.
-- [ ] Проверить, что неразрешенный Google-аккаунт не получает доступ ни к демо, ни к приватным данным.
+-[x] Redirect URLs:
+http://localhost:3000/**
+https://твой-домен/**
 
-## 5. Реализовать вход администратора
+## Add DB column
 
-- [ ] Добавить скрытую модалку входа.
-- [ ] Открывать модалку по `Ctrl+Shift+A`.
-- [ ] Открывать модалку по двойному клику на логотипе.
-- [ ] В модалке показать форму логин-пароль.
-- [ ] В модалке показать вход через Google.
-- [ ] После успешного входа сохранять Supabase-сессию.
-- [ ] После успешного входа проверять, что аккаунт разрешен.
-- [ ] Если аккаунт не разрешен, сразу разлогинивать его и показывать ошибку.
-- [ ] После успешного входа переключать приложение в admin mode без перезагрузки.
+-[x] добавить в схему новую колонку:
 
-## 6. Подготовить frontend
+`prisma/schema.prisma`: 
+```prisma
+model JobApplication {
+  // ...
+  isDemo Boolean @default(false)
+}
+```
 
-- [ ] Сделать `guest` режимом по умолчанию при открытии приложения.
-- [ ] Не показывать публичную кнопку `Sign in`.
-- [ ] Оставить на главной странице только публичный интерфейс для демо.
-- [ ] После авторизации показывать те же страницы, но уже с admin-доступом.
-- [ ] Обновлять UI после изменения auth state.
+-[x]  запустить миграцию
+```bash
+npx prisma migrate dev --name add_is_demo
+```
 
-## 7. Подготовить backend-логику
+## Fix Admin
 
-- [ ] Сделать helper для получения текущей Supabase-сессии.
-- [ ] Сделать helper для проверки, что текущий пользователь - разрешенный admin.
-- [ ] Добавить серверную проверку доступа для защищенных операций.
-- [ ] Не полагаться только на фильтрацию на фронтенде.
+-[x] Создать/впустить админа через Supabase Auth
+-[x] Взять UUID админа из Authentication → Users
+-[x] Заменить `PASTE_ADMIN_SUPABASE_USER_ID_HERE` на UUID и выполнить в SQL editor:
+```
+create schema if not exists private;
 
-## 8. Поведение гостя
+create table if not exists private.admin_users (user_id uuid primary key);
 
-- [ ] Гость при открытии приложения сразу видит демо.
-- [ ] Все действия гостя ограничены демо-данными.
-- [ ] Зафиксировать, что гость может делать с демо: просмотр, создание, редактирование, удаление.
-- [ ] Демо-данные сейчас берутся из `prisma/seed.ts`.
-- [ ] После добавления `isDemo` проставить его для всех демо-записей в seed.
-- [ ] Сгенерировать CSV-файл из демо-данных.
-- [ ] Хранить CSV рядом с seed-данными, например в `prisma/demo-data.csv`.
-- [ ] Обновлять CSV каждый раз, когда меняется `prisma/seed.ts`.
-- [ ] Для ручного восстановления демо использовать порядок:
-  - [ ] удалить из таблицы только строки `isDemo = true`;
-  - [ ] импортировать CSV в Supabase через `Import data from CSV`;
-  - [ ] проверить, что импортированные строки снова получили `isDemo = true`.
-- [ ] Позже заменить ручное восстановление на cron-задачу.
+insert into private.admin_users (user_id)
+values ('PASTE_ADMIN_SUPABASE_USER_ID_HERE')
+    on conflict do nothing;
+```
+-[x] проверить:
+```
+select * from private.admin_users;
+```
+должна быть строка с UUID админа
 
-## 9. Поведение администратора
+## RLS for table
 
-- [ ] Админ после входа видит все записи, включая демо.
-- [ ] Админ может создавать, редактировать и удалять любые данные.
-- [ ] Админ не должен зависеть от отдельного `/admin`-роута.
-- [ ] Админский вход должен открываться только через скрытые механизмы.
+-[x] создать функцию `private.is_admin()` (выполнить в SQL Editor):
+```
+create or replace function private.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = private, public
+as $$
+select exists (
+    select 1
+    from private.admin_users
+    where user_id = auth.uid()
+);
+$$;
+```
+-[x] Включить RLS (выполнить в SQL Editor):
+```
+alter table public."job_tracker_job_applications"
+enable row level security;
+```
+- Создать политики  (выполнить в SQL Editor):
 
-## 10. Проверка и тестирование
+-[x] `read`  
+```
+drop policy if exists "guest can read demo jobs"
+on public."job_tracker_job_applications";
 
-- [ ] Проверить вход как guest без авторизации.
-- [ ] Проверить вход как admin через логин и пароль.
-- [ ] Проверить вход как admin через Google.
-- [ ] Проверить, что разрешенный admin видит все.
-- [ ] Проверить, что неразрешенный Google-аккаунт не получает доступ.
-- [ ] Проверить, что `guest` видит только `isDemo = true`.
-- [ ] Проверить, что `RLS` не дает обойти ограничения через прямой запрос.
-- [ ] Проверить открытие модалки по `Ctrl+Shift+A`.
-- [ ] Проверить открытие модалки по двойному клику на логотип.
+create policy "guest can read demo jobs"
+on public."job_tracker_job_applications"
+for select
+to anon
+using ("isDemo" = true);
 
-## 11. Готовность к продакшену
 
-- [ ] Проверить redirect URLs в Supabase.
-- [ ] Проверить env-переменные в приложении.
-- [ ] Проверить ручной или автоматический сценарий восстановления демо-данных.
-- [ ] Проверить, что приватные данные не смешиваются с демо.
-- [ ] Проверить, что скрытый вход не ломается в мобильной версии.
+drop policy if exists "admin can read all jobs"
+on public."job_tracker_job_applications";
+
+create policy "admin can read all jobs"
+on public."job_tracker_job_applications"
+for select
+to authenticated
+using (private.is_admin());
+``` 
+-[x] `guest insert`
+```
+drop policy if exists "guest can insert demo jobs"
+on public."job_tracker_job_applications";
+
+create policy "guest can insert demo jobs"
+on public."job_tracker_job_applications"
+for insert
+to anon
+with check ("isDemo" = true);
+```
+-[x] `guest update`
+```
+drop policy if exists "guest can update demo jobs"
+on public."job_tracker_job_applications";
+
+create policy "guest can update demo jobs"
+on public."job_tracker_job_applications"
+for update
+to anon
+using ("isDemo" = true)
+with check ("isDemo" = true);
+```
+-[x] `guest delete`
+```
+drop policy if exists "guest can delete demo jobs"
+on public."job_tracker_job_applications";
+
+create policy "guest can delete demo jobs"
+on public."job_tracker_job_applications"
+for delete
+to anon
+using ("isDemo" = true);
+```
+-[x] `admin write`
+```
+drop policy if exists "admin can write all jobs"
+on public."job_tracker_job_applications";
+
+create policy "admin can write all jobs"
+on public."job_tracker_job_applications"
+for all
+to authenticated
+using (private.is_admin())
+with check (private.is_admin());
+```
+
+## API update
+
+-[x] установить Nuxt Supabase:
+```bash
+npm install @nuxtjs/supabase
+```
+-[x] добавить в файл `nuxt.config.ts`:
+```typescript
+export default defineNuxtConfig({
+  // ...
+  modules: [/* ... */'@nuxtjs/supabase'],
+  // ...
+  supabase: {
+    redirect: false,
+  },
+})
+```
+-[x] скопировать из `Supabase` URL публичный кюч и добавить в файл `.env`:
+```dotenv
+NUXT_PUBLIC_SUPABASE_URL=...
+NUXT_PUBLIC_SUPABASE_KEY=...
+```
+`Supabase -> Project Overview` под именем проекта будет URL и справа кнопка `Copy`  
+Там будет и URL и публичный ключ
+
+## Temporary Login
+
+Создать временный простейший функционал логина, чтобы можно было начать работу с авторизованным юзером в АПИ.
+
+- [x] использовать `useSupabaseClient` для входа и выхода
+- [x] текущая Supabase-сессия должна быть доступна на сервере в запросах к job API через cookie/auth state
+- [x] после успешного входа и выхода нужно обновлять данные job-списков на клиенте
+- [x] ошибки отображать в браузерном Alert
+
+
+### Sign In
+- [x] создать модальное окно для формы входа
+- [x] модальное окно открывается двойным кликом по логотипу
+- [x] создать форму входа с полями `email`  и `password` и кнопкой `Sign In`
+- [x] без валидации
+- [x] сабмит использует Supabase client auth
+
+### Sign Out
+- [x] в правом верхнем углу страницы рахместить кнопку `Sign Out`
+- [x] по клику на кнопку использовать Supabase client auth для выхода
+
+## Next API Steps
+
+- [x] Пройтись по всем job API-обработчикам и собрать единый способ определения актера через `server/utils/auth.ts`.
+- [x] Использовать текущий `getRequestActor(event)` как точку входа для проверки `serverSupabaseUser(event)` и статуса админа.
+- [x] Для `guest` в списке и метаданных всегда добавлять фильтр `where: { isDemo: true }`, чтобы гостю не были видны админские записи.
+- [x] Для `admin` в списке и метаданных исключать demo-записи, чтобы админ не видел гостевые данные.
+- [x] Для `guest` в `create` и `update` принудительно устанавливать `isDemo: true` на сервере и не принимать это значение с фронта.
+- [x] Для `admin` валидировать Supabase session/JWT только на сервере и считать запрос авторизованным только после этой проверки.
+- [x] Для всех write-операций не доверять входящим данным из клиента и нормализовать их на сервере перед записью в БД.
+- [x] Добавить или обновить тесты для гостевого чтения, гостевого создания/обновления и админского доступа, чтобы закрепить поведение.

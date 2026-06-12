@@ -6,6 +6,7 @@ import {
   normalizeVacancyUrl,
 } from '../../shared/job-validation-messages';
 import { parseJobPayload, parseJobUpdatePayload } from './jobs';
+import type { RequestActor } from './auth';
 
 type PrismaJobApplicationClient = Pick<PrismaClient, 'jobApplication'>;
 
@@ -110,6 +111,17 @@ const buildJobWhere = (
   };
 };
 
+const buildActorWhere = (actor?: RequestActor) =>
+  actor?.isAdmin ? { isDemo: false } : { isDemo: true };
+
+const normalizeJobWriteData = <T extends Record<string, unknown>>(
+  data: T,
+  actor?: RequestActor,
+) => ({
+  ...data,
+  isDemo: !actor?.isAdmin,
+});
+
 const isUniqueConstraintError = (error: unknown) =>
   typeof error === 'object' &&
   error !== null &&
@@ -168,10 +180,14 @@ const ensureVacancyUrlIsUnique = async (
 export const listJobApplications = (
   prisma: PrismaJobApplicationClient,
   query: JobQuery,
+  actor?: RequestActor,
 ) => {
   const page = parsePositiveInteger(query.page, 'page', 1);
   const perPage = parsePositiveInteger(query.perPage, 'perPage', 20);
-  const where = buildJobWhere(query);
+  const where = {
+    ...buildActorWhere(actor),
+    ...buildJobWhere(query),
+  };
 
   return Promise.all([
     prisma.jobApplication.findMany({
@@ -197,11 +213,17 @@ export const listJobApplications = (
 export const getJobMeta = async (
   prisma: PrismaJobApplicationClient,
   query: Pick<JobQuery, 'company' | 'search'> = {},
+  actor?: RequestActor,
 ) => {
-  const statsWhere = buildJobWhere(query);
+  const actorWhere = buildActorWhere(actor);
+  const statsWhere = {
+    ...actorWhere,
+    ...buildJobWhere(query),
+  };
 
   const [companies, statuses, stats] = await Promise.all([
     prisma.jobApplication.findMany({
+      where: actorWhere,
       distinct: ['company'],
       select: {
         company: true,
@@ -211,6 +233,7 @@ export const getJobMeta = async (
       },
     }),
     prisma.jobApplication.findMany({
+      where: actorWhere,
       distinct: ['status'],
       select: {
         status: true,
@@ -274,13 +297,15 @@ export const getJobMeta = async (
 export const createJobApplication = (
   prisma: PrismaJobApplicationClient,
   payload: Record<string, unknown>,
+  actor?: RequestActor,
 ) => {
   const data = parseJobPayload(payload);
+  const normalizedData = normalizeJobWriteData(data, actor);
 
   return ensureVacancyUrlIsUnique(prisma, data.vacancyUrl)
     .then(() =>
       prisma.jobApplication.create({
-        data,
+        data: normalizedData,
       }),
     )
     .catch((error) => {
@@ -295,6 +320,7 @@ export const createJobApplication = (
 export const getJobApplication = async (
   prisma: PrismaJobApplicationClient,
   id: string,
+  _actor?: RequestActor,
 ) => {
   const job = await prisma.jobApplication.findUnique({
     where: {
@@ -316,8 +342,10 @@ export const updateJobApplication = async (
   prisma: PrismaJobApplicationClient,
   id: string,
   payload: Record<string, unknown>,
+  actor?: RequestActor,
 ) => {
   const data = parseJobUpdatePayload(payload);
+  const normalizedData = normalizeJobWriteData(data, actor);
 
   const existingJob = await prisma.jobApplication.findUnique({
     where: {
@@ -344,7 +372,7 @@ export const updateJobApplication = async (
       where: {
         id,
       },
-      data,
+      data: normalizedData,
     });
   } catch (error) {
     if (isUniqueConstraintError(error)) {
@@ -358,6 +386,7 @@ export const updateJobApplication = async (
 export const deleteJobApplication = async (
   prisma: PrismaJobApplicationClient,
   id: string,
+  _actor?: RequestActor,
 ) => {
   const existingJob = await prisma.jobApplication.findUnique({
     where: {

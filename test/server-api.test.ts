@@ -84,6 +84,20 @@ const buildPrismaStub = (options: PrismaStubOptions = {}) => {
   };
 };
 
+const guestActor = {
+  isAuthenticated: false,
+  isAdmin: false,
+  user: null,
+} as const;
+
+const adminActor = {
+  isAuthenticated: true,
+  isAdmin: true,
+  user: {
+    sub: '00000000-0000-0000-0000-000000000001',
+  },
+} as const;
+
 const expectHttpError = async (
   fn: () => Promise<unknown> | unknown,
   statusCode: number,
@@ -353,6 +367,7 @@ test('listJobApplications applies filters and sort order', async () => {
   assert.equal(calls.findMany.length, 1);
   assert.deepEqual(calls.findMany[0], {
     where: {
+      isDemo: true,
       status: 'APPLIED',
       company: {
         contains: 'OpenAI',
@@ -389,6 +404,7 @@ test('listJobApplications applies filters and sort order', async () => {
   assert.equal(calls.count.length, 1);
   assert.deepEqual(calls.count[0], {
     where: {
+      isDemo: true,
       status: 'APPLIED',
       company: {
         contains: 'OpenAI',
@@ -419,6 +435,46 @@ test('listJobApplications applies filters and sort order', async () => {
   });
 });
 
+test('listJobApplications scopes admin jobs to non-demo records', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    findManyResult: [{ id: '1' }],
+    countResult: 1,
+  });
+
+  const result = await listJobApplications(
+    prisma,
+    {
+      status: 'APPLIED',
+    },
+    adminActor,
+  );
+
+  assert.deepEqual(result, {
+    items: [{ id: '1' }],
+    total: 1,
+    page: 1,
+    perPage: 20,
+    totalPages: 1,
+  });
+  assert.deepEqual(calls.findMany[0], {
+    where: {
+      isDemo: false,
+      status: 'APPLIED',
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    skip: 0,
+    take: 20,
+  });
+  assert.deepEqual(calls.count[0], {
+    where: {
+      isDemo: false,
+      status: 'APPLIED',
+    },
+  });
+});
+
 test('listJobApplications applies pagination params', async () => {
   const { prisma, calls } = buildPrismaStub({
     findManyResult: [{ id: '1' }],
@@ -439,7 +495,9 @@ test('listJobApplications applies pagination params', async () => {
   });
   assert.equal(calls.findMany.length, 1);
   assert.deepEqual(calls.findMany[0], {
-    where: {},
+    where: {
+      isDemo: true,
+    },
     orderBy: {
       createdAt: 'desc',
     },
@@ -448,7 +506,9 @@ test('listJobApplications applies pagination params', async () => {
   });
   assert.equal(calls.count.length, 1);
   assert.deepEqual(calls.count[0], {
-    where: {},
+    where: {
+      isDemo: true,
+    },
   });
 });
 
@@ -482,6 +542,7 @@ test('listJobApplications accepts interview group status', async () => {
   assert.equal(calls.findMany.length, 1);
   assert.deepEqual(calls.findMany[0], {
     where: {
+      isDemo: true,
       status: {
         in: ['SCREENING', 'TECHNICAL_INTERVIEW', 'FINAL_INTERVIEW'],
       },
@@ -495,6 +556,7 @@ test('listJobApplications accepts interview group status', async () => {
   assert.equal(calls.count.length, 1);
   assert.deepEqual(calls.count[0], {
     where: {
+      isDemo: true,
       status: {
         in: ['SCREENING', 'TECHNICAL_INTERVIEW', 'FINAL_INTERVIEW'],
       },
@@ -553,6 +615,9 @@ test('getJobMeta returns companies, statuses and stats', async () => {
   });
   assert.equal(calls.findMany.length, 2);
   assert.deepEqual(calls.findMany[0], {
+    where: {
+      isDemo: true,
+    },
     distinct: ['company'],
     select: {
       company: true,
@@ -562,6 +627,9 @@ test('getJobMeta returns companies, statuses and stats', async () => {
     },
   });
   assert.deepEqual(calls.findMany[1], {
+    where: {
+      isDemo: true,
+    },
     distinct: ['status'],
     select: {
       status: true,
@@ -574,6 +642,7 @@ test('getJobMeta returns companies, statuses and stats', async () => {
   assert.deepEqual(calls.groupBy[0], {
     by: ['status'],
     where: {
+      isDemo: true,
       company: {
         contains: 'OpenAI',
       },
@@ -606,6 +675,49 @@ test('getJobMeta returns companies, statuses and stats', async () => {
   });
 });
 
+test('getJobMeta scopes admin metadata to non-demo records', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    findManyResults: [[{ company: 'OpenAI' }], [{ status: 'SAVED' }]],
+    groupByResult: [{ status: 'SAVED', _count: { _all: 1 } }],
+  });
+
+  await getJobMeta(prisma, {}, adminActor);
+
+  assert.deepEqual(calls.findMany[0], {
+    where: {
+      isDemo: false,
+    },
+    distinct: ['company'],
+    select: {
+      company: true,
+    },
+    orderBy: {
+      company: 'asc',
+    },
+  });
+  assert.deepEqual(calls.findMany[1], {
+    where: {
+      isDemo: false,
+    },
+    distinct: ['status'],
+    select: {
+      status: true,
+    },
+    orderBy: {
+      status: 'asc',
+    },
+  });
+  assert.deepEqual(calls.groupBy[0], {
+    by: ['status'],
+    where: {
+      isDemo: false,
+    },
+    _count: {
+      _all: true,
+    },
+  });
+});
+
 test('getJobMeta returns zero conversion rates when there are no jobs', async () => {
   const { prisma } = buildPrismaStub({
     findManyResults: [[], []],
@@ -629,19 +741,23 @@ test('getJobMeta returns zero conversion rates when there are no jobs', async ()
   });
 });
 
-test('createJobApplication creates parsed payload', async () => {
+test('createJobApplication creates guest demo payload', async () => {
   const { prisma, calls } = buildPrismaStub({
     createResult: { id: 'job_1' },
   });
 
-  const result = await createJobApplication(prisma, {
-    company: 'OpenAI',
-    position: 'Frontend',
-    vacancyUrl: 'abc',
-    status: 'SAVED',
-    source: 'LinkedIn',
-    notes: 'Nice role',
-  });
+  const result = await createJobApplication(
+    prisma,
+    {
+      company: 'OpenAI',
+      position: 'Frontend',
+      vacancyUrl: 'abc',
+      status: 'SAVED',
+      source: 'LinkedIn',
+      notes: 'Nice role',
+    },
+    guestActor,
+  );
 
   assert.deepEqual(result, { id: 'job_1' });
   assert.equal(calls.findMany.length, 1);
@@ -661,6 +777,44 @@ test('createJobApplication creates parsed payload', async () => {
       notes: 'Nice role',
       appliedAt: null,
       nextFollowUpAt: null,
+      isDemo: true,
+    },
+  });
+});
+
+test('createJobApplication creates admin non-demo payload', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    createResult: { id: 'job_1' },
+  });
+
+  await createJobApplication(
+    prisma,
+    {
+      company: 'OpenAI',
+      position: 'Frontend',
+      vacancyUrl: 'abc',
+      status: 'SAVED',
+      source: 'LinkedIn',
+    },
+    adminActor,
+  );
+
+  assert.deepEqual(calls.create[0], {
+    data: {
+      company: 'OpenAI',
+      position: 'Frontend',
+      vacancyUrl: 'abc',
+      status: 'SAVED',
+      source: 'LinkedIn',
+      salaryMin: null,
+      salaryMax: null,
+      currency: null,
+      location: null,
+      remoteType: null,
+      notes: null,
+      appliedAt: null,
+      nextFollowUpAt: null,
+      isDemo: false,
     },
   });
 });
@@ -700,16 +854,21 @@ test('getJobApplication returns 404 when job is missing', async () => {
   );
 });
 
-test('updateJobApplication updates parsed payload', async () => {
+test('updateJobApplication updates guest demo payload', async () => {
   const { prisma, calls } = buildPrismaStub({
     findUniqueResults: [{ id: 'job_1' }],
     updateResult: { id: 'job_1', status: 'OFFER' },
   });
 
-  const result = await updateJobApplication(prisma, 'job_1', {
-    status: 'OFFER',
-    notes: 'Updated',
-  });
+  const result = await updateJobApplication(
+    prisma,
+    'job_1',
+    {
+      status: 'OFFER',
+      notes: 'Updated',
+    },
+    guestActor,
+  );
 
   assert.deepEqual(result, { id: 'job_1', status: 'OFFER' });
   assert.equal(calls.findUnique.length, 1);
@@ -721,6 +880,35 @@ test('updateJobApplication updates parsed payload', async () => {
     data: {
       status: 'OFFER',
       notes: 'Updated',
+      isDemo: true,
+    },
+  });
+});
+
+test('updateJobApplication updates admin non-demo payload', async () => {
+  const { prisma, calls } = buildPrismaStub({
+    findUniqueResults: [{ id: 'job_1' }],
+    updateResult: { id: 'job_1', status: 'OFFER' },
+  });
+
+  await updateJobApplication(
+    prisma,
+    'job_1',
+    {
+      status: 'OFFER',
+      notes: 'Updated',
+    },
+    adminActor,
+  );
+
+  assert.deepEqual(calls.update[0], {
+    where: {
+      id: 'job_1',
+    },
+    data: {
+      status: 'OFFER',
+      notes: 'Updated',
+      isDemo: false,
     },
   });
 });

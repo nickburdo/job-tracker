@@ -2,14 +2,13 @@
 import { allCompaniesValue, allStatusesValue } from '~/constants/jobs-filter';
 import type { JobMetaResponse } from '~/utils/job-applications';
 
+const search = defineModel<string>('search');
 const selectedStatus = defineModel<string>('status');
 const selectedCompany = defineModel<string>('company');
 
 const props = defineProps<{
   jobMeta: JobMetaResponse | undefined;
 }>();
-
-const search = ref('');
 
 const companyOptions = computed(() => [
   {

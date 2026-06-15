@@ -139,6 +139,7 @@ const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
       <JobsStatusCards v-model="selectedStatus" :job-meta="jobMeta" />
 
       <JobsListFilters
+        v-model:search="search"
         v-model:company="selectedCompany"
         v-model:status="selectedStatus"
         :job-meta="jobMeta"

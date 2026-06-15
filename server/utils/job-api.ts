@@ -1,10 +1,10 @@
 import { createError } from 'h3';
-import { JobApplicationStatus } from '../../generated/prisma/client';
-import type { PrismaClient } from '../../generated/prisma/client';
+import { JobApplicationStatus } from '~~/generated/prisma/enums';
+import type { PrismaClient } from '~~/generated/prisma/client';
 import {
   jobValidationMessages,
   normalizeVacancyUrl,
-} from '../../shared/job-validation-messages';
+} from '#shared/job-validation-messages';
 import { parseJobPayload, parseJobUpdatePayload } from './jobs';
 import type { RequestActor } from './auth';
 
@@ -287,8 +287,7 @@ export const getJobMeta = async (
           : 0,
       rejectionRate:
         total > 0
-          ? (countByStatus.get(JobApplicationStatus.REJECTED) ?? 0) /
-            safeTotal
+          ? (countByStatus.get(JobApplicationStatus.REJECTED) ?? 0) / safeTotal
           : 0,
     },
   };

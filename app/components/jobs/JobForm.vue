@@ -7,8 +7,11 @@ import {
   jobValidationMessages,
   jobTextFieldLimits,
   type JobTextField,
-} from '../../../shared/job-validation-messages';
-import type { JobFormField, JobFormServerErrors } from '~/utils/job-form-errors';
+} from '#shared/job-validation-messages';
+import type {
+  JobFormField,
+  JobFormServerErrors,
+} from '~/utils/job-form-errors';
 
 type JobFormValue = {
   company: string;
@@ -150,7 +153,8 @@ const validateForm = () => {
     fieldErrors.value.vacancyUrl =
       jobValidationMessages.vacancyUrlInvalid('vacancyUrl');
   } else if (isTooLong('vacancyUrl', form.vacancyUrl)) {
-    fieldErrors.value.vacancyUrl = jobValidationMessages.maxLength('vacancyUrl');
+    fieldErrors.value.vacancyUrl =
+      jobValidationMessages.maxLength('vacancyUrl');
   }
 
   if (
@@ -280,7 +284,11 @@ const handleCancel = () => {
         />
       </UFormField>
 
-      <UFormField label="Vacancy URL" :error="getFieldError('vacancyUrl')" required>
+      <UFormField
+        label="Vacancy URL"
+        :error="getFieldError('vacancyUrl')"
+        required
+      >
         <UInput
           v-model="form.vacancyUrl"
           class="w-full"
@@ -356,7 +364,11 @@ const handleCancel = () => {
         <UInput v-model="form.nextFollowUpAt" class="w-full" type="date" />
       </UFormField>
 
-      <UFormField label="Notes" class="lg:col-span-2" :error="getFieldError('notes')">
+      <UFormField
+        label="Notes"
+        class="lg:col-span-2"
+        :error="getFieldError('notes')"
+      >
         <UTextarea
           v-model="form.notes"
           class="w-full"

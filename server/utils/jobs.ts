@@ -1,10 +1,10 @@
 import { createError, getRouterParam } from 'h3';
-import { JobApplicationStatus } from '../../generated/prisma/client';
+import { JobApplicationStatus } from '~~/generated/prisma/enums';
 import {
   jobValidationMessages,
   jobTextFieldLimits,
   type JobTextField,
-} from '../../shared/job-validation-messages';
+} from '#shared/job-validation-messages';
 
 const jobStatuses = new Set(Object.values(JobApplicationStatus));
 
@@ -266,7 +266,9 @@ export const parseJobUpdatePayload = (payload: JobPayload) => {
   return data;
 };
 
-export const getJobId = (event: Parameters<typeof getRouterParam>[0]): string => {
+export const getJobId = (
+  event: Parameters<typeof getRouterParam>[0],
+): string => {
   const id = getRouterParam(event, 'id');
 
   if (!id) {

@@ -26,11 +26,3 @@ logs
 .idea
 AGENTS.md
 AGENTS.locale.md
-
-# Local env files
-.env
-.env.*
-!.env.example
-/db_backup/
-/docs/dev/
-/docs/data.json

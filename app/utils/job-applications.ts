@@ -106,3 +106,11 @@ export const toDateInput = (value: string | null) => {
 
   return value.slice(0, 10);
 };
+
+export const withDefaultAppliedDate = (value: Record<string, unknown>) => {
+  if (value.status === 'APPLIED' && !value.appliedAt) {
+    return { ...value, appliedAt: new Date().toISOString().slice(0, 10) };
+  }
+
+  return value;
+};

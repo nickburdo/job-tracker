@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { toDateInput, type JobApplication } from '~/utils/job-applications';
+import {
+  toDateInput,
+  withDefaultAppliedDate,
+  type JobApplication,
+} from '~/utils/job-applications';
 import { handleApiFormError } from '~/utils/form-errors';
 import {
   jobFormFields,
@@ -68,7 +72,7 @@ const updateJob = async (value: Record<string, unknown>) => {
   serverFieldErrors.value = {};
 
   try {
-    await updateJobApplication(id.value, value);
+    await updateJobApplication(id.value, withDefaultAppliedDate(value));
 
     toast.add({ title: 'Application updated', color: 'success' });
     await router.push(`/jobs/${id.value}`);

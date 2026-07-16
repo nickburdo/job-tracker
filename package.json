@@ -13,6 +13,7 @@
     "generate": "nuxt generate",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck",
     "start": "node start-preview.mjs",
     "preview": "nuxt preview",
     "test": "node --import tsx --test test/server-api.test.ts",

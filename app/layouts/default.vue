@@ -8,17 +8,22 @@ import MainMenu from '~/components/layouts/default/MainMenu.vue';
       class="fixed top-0 left-0 right-0 border-b border-default bg-default/95 backdrop-blur z-10"
     >
       <UContainer class="flex h-16 items-center justify-between gap-6">
-        <AuthLogin />
+        <NuxtLink to="/" class="flex items-center gap-3">
+          <span
+            class="flex size-9 items-center justify-center rounded-md bg-primary text-sm font-semibold text-inverted"
+          >
+            JT
+          </span>
+          <span class="text-sm font-semibold text-highlighted">
+            Job Tracker
+          </span>
+        </NuxtLink>
 
         <div class="hidden md:block">
           <MainMenu />
         </div>
 
         <div class="flex items-center gap-2">
-          <ClientOnly>
-            <AuthLogout />
-          </ClientOnly>
-
           <UButton to="/jobs/new" icon="i-lucide-plus" size="sm">
             New application
           </UButton>

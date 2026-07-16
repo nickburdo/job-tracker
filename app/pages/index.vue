@@ -1,46 +1,38 @@
 <script setup lang="ts">
 import type {
   JobApplication,
-  JobApplicationsResponse,
   JobMetaResponse,
 } from '~/utils/job-applications';
+import {
+  getJobMeta,
+  listJobApplications,
+} from '~/lib/db/repositories/jobApplicationRepository';
 
-const dashboardPageSize = 100;
+const allJobs = ref<JobApplication[]>([]);
+const dashboardMeta = ref<JobMetaResponse>();
+const pending = ref(false);
+const error = ref<Error | null>(null);
 
-const fetchJobsPage = (page: number) =>
-  $fetch<JobApplicationsResponse>('/api/jobs', {
-    query: {
-      page,
-      perPage: dashboardPageSize,
-    },
-  });
+async function refresh() {
+  pending.value = true;
+  error.value = null;
 
-const {
-  data: allJobs,
-  pending,
-  error,
-  refresh,
-} = await useAsyncData('dashboard-jobs', async () => {
-  const firstPage = await fetchJobsPage(1);
-  const jobs: JobApplication[] = [...firstPage.items];
+  try {
+    const [page, meta] = await Promise.all([
+      listJobApplications({ perPage: Number.MAX_SAFE_INTEGER }),
+      getJobMeta(),
+    ]);
 
-  if (firstPage.totalPages > 1) {
-    const pageNumbers = Array.from(
-      { length: firstPage.totalPages - 1 },
-      (_, index) => index + 2,
-    );
-    const pages = await Promise.all(pageNumbers.map(fetchJobsPage));
-
-    for (const page of pages) {
-      jobs.push(...page.items);
-    }
+    allJobs.value = page.items;
+    dashboardMeta.value = meta;
+  } catch (fetchError) {
+    error.value = fetchError as Error;
+  } finally {
+    pending.value = false;
   }
+}
 
-  return jobs;
-});
-
-const { data: dashboardMeta } =
-  await useFetch<JobMetaResponse>('/api/jobs/meta');
+await refresh();
 
 const toast = useToast();
 const hasShownErrorToast = ref(false);

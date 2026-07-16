@@ -161,6 +161,8 @@ const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
             Track active applications, interview stages, and follow-ups.
           </p>
         </div>
+
+        <JobsDataActions @imported="refreshAll" />
       </div>
 
       <JobsStatusCards v-model="selectedStatus" :job-meta="jobMeta" />

@@ -20,7 +20,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "demo:generate": "node scripts/generate-demo-data.mjs"
   },
   "dependencies": {
     "@nuxt/ui": "^4.8.1",

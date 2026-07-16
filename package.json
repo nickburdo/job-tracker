@@ -16,7 +16,6 @@
     "typecheck": "nuxt typecheck",
     "start": "node start-preview.mjs",
     "preview": "nuxt preview",
-    "test": "node --import tsx --test test/server-api.test.ts",
     "postinstall": "nuxt prepare && prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

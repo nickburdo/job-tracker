@@ -7,6 +7,10 @@ datasource db {
   provider = "postgresql"
 }
 
+// NOTE: as of Step 1 (local-first IndexedDB migration), this schema is no
+// longer connected to a live database, generator, or client. It documents
+// the shape that app/lib/db/schema.ts (Dexie) mirrors in the browser.
+
 enum JobApplicationStatus {
   SAVED
   APPLIED
@@ -36,7 +40,6 @@ model JobApplication {
   nextFollowUpAt DateTime?
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
-  isDemo Boolean @default(false)
 
   @@index([status])
   @@index([company])

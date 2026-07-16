@@ -8,6 +8,10 @@ import {
   type JobMetaResponse,
 } from '~/utils/job-applications';
 import { allStatusesValue, allCompaniesValue } from '~/constants/jobs-filter';
+import {
+  getJobMeta,
+  listJobApplications,
+} from '~/lib/db/repositories/jobApplicationRepository';
 
 const perPageOptions = [5, 10, 20, 50].map((value) => ({
   label: String(value),
@@ -38,26 +42,49 @@ const listQuery = computed(() => ({
   search: normalizedSearch.value || undefined,
 }));
 
-const {
-  data: jobPage,
-  pending,
-  error,
-  refresh,
-} = await useFetch<JobApplicationsResponse>('/api/jobs', {
-  query: listQuery,
-});
+const jobPage = ref<JobApplicationsResponse>();
+const jobMeta = ref<JobMetaResponse>();
+const pending = ref(false);
+const metaPending = ref(false);
+const error = ref<Error | null>(null);
+const metaError = ref<Error | null>(null);
 
-const {
-  data: jobMeta,
-  pending: metaPending,
-  error: metaError,
-  refresh: refreshMeta,
-} = await useFetch<JobMetaResponse>('/api/jobs/meta', {
-  query: computed(() => ({
-    company: selectedCompanyFilter.value,
-    search: normalizedSearch.value || undefined,
-  })),
-});
+async function refresh() {
+  pending.value = true;
+  error.value = null;
+
+  try {
+    jobPage.value = await listJobApplications(listQuery.value);
+  } catch (fetchError) {
+    error.value = fetchError as Error;
+  } finally {
+    pending.value = false;
+  }
+}
+
+async function refreshMeta() {
+  metaPending.value = true;
+  metaError.value = null;
+
+  try {
+    jobMeta.value = await getJobMeta({
+      company: selectedCompanyFilter.value,
+      search: normalizedSearch.value || undefined,
+    });
+  } catch (fetchError) {
+    metaError.value = fetchError as Error;
+  } finally {
+    metaPending.value = false;
+  }
+}
+
+await Promise.all([refresh(), refreshMeta()]);
+
+watch(listQuery, refresh);
+watch(
+  () => [selectedCompanyFilter.value, normalizedSearch.value],
+  refreshMeta,
+);
 
 const toast = useToast();
 const hasShownErrorToast = ref(false);
@@ -134,6 +161,8 @@ const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
             Track active applications, interview stages, and follow-ups.
           </p>
         </div>
+
+        <JobsDataActions @imported="refreshAll" />
       </div>
 
       <JobsStatusCards v-model="selectedStatus" :job-meta="jobMeta" />

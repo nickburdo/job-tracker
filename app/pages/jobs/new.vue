@@ -5,6 +5,7 @@ import {
   type JobFormField,
   type JobFormServerErrors,
 } from '~/utils/job-form-errors';
+import { createJobApplication } from '~/lib/db/repositories/jobApplicationRepository';
 
 const router = useRouter();
 const toast = useToast();
@@ -30,10 +31,7 @@ const createJob = async (value: Record<string, unknown>) => {
   serverFieldErrors.value = {};
 
   try {
-    const job = await $fetch<{ id: string }>('/api/jobs', {
-      method: 'POST',
-      body: value,
-    });
+    const job = await createJobApplication(value);
 
     toast.add({ title: 'Application created', color: 'success' });
     await router.push(`/jobs/${job.id}`);

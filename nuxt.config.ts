@@ -2,7 +2,8 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxt/eslint', '@nuxt/ui', '@pinia/nuxt', '@nuxtjs/supabase'],
+  modules: ['@nuxt/eslint', '@nuxt/ui', '@pinia/nuxt'],
+  ssr: false,
   css: ['~/assets/css/main.css'],
   app: {
     head: {
@@ -24,11 +25,5 @@ export default defineNuxtConfig({
         { rel: 'manifest', href: '/site.webmanifest' },
       ],
     },
-  },
-  routeRules: {
-    '/auth/callback': { ssr: false },
-  },
-  supabase: {
-    redirect: false,
   },
 });

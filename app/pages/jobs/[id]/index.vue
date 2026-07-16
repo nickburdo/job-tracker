@@ -10,15 +10,24 @@ import {
   formatJobSalary,
   type JobApplication,
 } from '~/utils/job-applications';
+import {
+  getJobApplication,
+  updateJobApplication,
+} from '~/lib/db/repositories/jobApplicationRepository';
 
 const route = useRoute();
 const id = computed(() => String(route.params.id));
 const statusPending = ref(false);
 const errorMessage = ref('');
 
-const { data: job, error } = await useFetch<JobApplication>(
-  () => `/api/jobs/${id.value}`,
-);
+const job = ref<JobApplication>();
+const error = ref<Error | null>(null);
+
+try {
+  job.value = await getJobApplication(id.value);
+} catch (loadError) {
+  error.value = loadError as Error;
+}
 
 const updateStatus = async (status: JobApplicationStatus) => {
   if (!job.value || job.value.status === status) {
@@ -29,12 +38,7 @@ const updateStatus = async (status: JobApplicationStatus) => {
   errorMessage.value = '';
 
   try {
-    job.value = await $fetch<JobApplication>(`/api/jobs/${id.value}`, {
-      method: 'PATCH',
-      body: {
-        status,
-      },
-    });
+    job.value = await updateJobApplication(id.value, { status });
   } catch (statusError) {
     errorMessage.value =
       statusError instanceof Error

@@ -33,3 +33,4 @@ AGENTS.locale.md
 !.env.example
 /db_backup/
 /docs/dev/
+/docs/data.json

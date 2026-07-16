@@ -6,12 +6,15 @@ import {
   type JobFormField,
   type JobFormServerErrors,
 } from '~/utils/job-form-errors';
+import {
+  getJobApplication,
+  updateJobApplication,
+} from '~/lib/db/repositories/jobApplicationRepository';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const id = computed(() => String(route.params.id));
-const updateEndpoint = computed(() => `/api/jobs/${id.value}`);
 const pending = ref(false);
 const serverFieldErrors = ref<JobFormServerErrors>({});
 
@@ -29,9 +32,14 @@ const setServerError = (field: JobFormField, message: string) => {
   };
 };
 
-const { data: job, error } = await useFetch<JobApplication>(
-  () => `/api/jobs/${id.value}`,
-);
+const job = ref<JobApplication>();
+const error = ref<Error | null>(null);
+
+try {
+  job.value = await getJobApplication(id.value);
+} catch (loadError) {
+  error.value = loadError as Error;
+}
 
 const initialValue = computed(() => {
   if (!job.value) {
@@ -60,10 +68,7 @@ const updateJob = async (value: Record<string, unknown>) => {
   serverFieldErrors.value = {};
 
   try {
-    await $fetch(updateEndpoint.value, {
-      method: 'PATCH',
-      body: value,
-    });
+    await updateJobApplication(id.value, value);
 
     toast.add({ title: 'Application updated', color: 'success' });
     await router.push(`/jobs/${id.value}`);

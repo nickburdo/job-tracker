@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { deleteJobApplication } from '~/lib/db/repositories/jobApplicationRepository';
+
 const router = useRouter();
 const toast = useToast();
 const props = defineProps<{
@@ -7,15 +9,12 @@ const props = defineProps<{
 
 const open = ref(false);
 const deletePending = ref(false);
-const deleteEndpoint = computed(() => `/api/jobs/${props.jobId}`);
 
 const deleteJob = async () => {
   deletePending.value = true;
 
   try {
-    await $fetch(deleteEndpoint.value, {
-      method: 'DELETE',
-    });
+    await deleteJobApplication(props.jobId);
 
     open.value = false;
     toast.add({ title: 'Application deleted', color: 'success' });

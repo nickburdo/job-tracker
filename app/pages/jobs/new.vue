@@ -5,6 +5,7 @@ import {
   type JobFormField,
   type JobFormServerErrors,
 } from '~/utils/job-form-errors';
+import { withDefaultAppliedDate } from '~/utils/job-applications';
 import { createJobApplication } from '~/lib/db/repositories/jobApplicationRepository';
 
 const router = useRouter();
@@ -31,7 +32,7 @@ const createJob = async (value: Record<string, unknown>) => {
   serverFieldErrors.value = {};
 
   try {
-    const job = await createJobApplication(value);
+    const job = await createJobApplication(withDefaultAppliedDate(value));
 
     toast.add({ title: 'Application created', color: 'success' });
     await router.push(`/jobs/${job.id}`);

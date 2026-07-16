@@ -8,6 +8,7 @@ import {
   formatJobDate,
   formatJobDateTime,
   formatJobSalary,
+  withDefaultAppliedDate,
   type JobApplication,
 } from '~/utils/job-applications';
 import {
@@ -38,7 +39,10 @@ const updateStatus = async (status: JobApplicationStatus) => {
   errorMessage.value = '';
 
   try {
-    job.value = await updateJobApplication(id.value, { status });
+    job.value = await updateJobApplication(
+      id.value,
+      withDefaultAppliedDate({ status, appliedAt: job.value.appliedAt }),
+    );
   } catch (statusError) {
     errorMessage.value =
       statusError instanceof Error

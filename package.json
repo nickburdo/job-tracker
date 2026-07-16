@@ -14,25 +14,15 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "nuxt typecheck",
-    "start": "node start-preview.mjs",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare && prisma generate",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "prisma db seed",
-    "prisma:studio": "prisma studio",
+    "postinstall": "nuxt prepare",
     "demo:generate": "node scripts/generate-demo-data.mjs"
   },
   "dependencies": {
     "@nuxt/ui": "^4.8.1",
-    "@nuxtjs/supabase": "^2.0.9",
     "@pinia/nuxt": "^0.11.3",
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.8.0",
     "dexie": "^4.4.4",
-    "dotenv": "^17.4.2",
     "nuxt": "^4.4.7",
-    "pg": "^8.21.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.34",
     "vue-router": "^4.6.4"
@@ -42,11 +32,8 @@
     "@nuxt/eslint": "^1.15.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.9.1",
-    "@types/pg": "^8.20.0",
     "eslint": "^9.39.4",
     "prettier": "^3.8.3",
-    "prisma": "^7.8.0",
-    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
 }

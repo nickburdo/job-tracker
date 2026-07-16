@@ -26,6 +26,3 @@ logs
 .idea
 AGENTS.md
 AGENTS.locale.md
-/db_backup/
-/docs/dev/
-/docs/data.json

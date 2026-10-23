@@ -15,6 +15,8 @@ const closeModal = () => {
 };
 
 const deleteJob = async () => {
+  if (deletePending.value) return;
+
   deletePending.value = true;
 
   try {
@@ -36,7 +38,12 @@ const deleteJob = async () => {
 </script>
 
 <template>
-  <UModal v-model:open="open" title="Delete job application?">
+  <UModal
+    v-model:open="open"
+    title="Delete job application?"
+    :dismissible="!deletePending"
+    :close="!deletePending"
+  >
     <UButton color="error" variant="outline" icon="i-lucide-trash-2">
       Delete
     </UButton>
@@ -47,8 +54,18 @@ const deleteJob = async () => {
 
     <template #footer>
       <div class="flex gap-2">
-        <UButton color="neutral" label="Cancel" @click="closeModal" />
-        <UButton color="error" label="Delete" @click="deleteJob" />
+        <UButton
+          color="neutral"
+          label="Cancel"
+          :disabled="deletePending"
+          @click="closeModal"
+        />
+        <UButton
+          color="error"
+          label="Delete"
+          :loading="deletePending"
+          @click="deleteJob"
+        />
       </div>
     </template>
   </UModal>

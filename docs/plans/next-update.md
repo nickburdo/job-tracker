@@ -17,7 +17,12 @@
 
 1. Сделать PWA.
 
+## Фиксы
+
+1. [x] Защитить кнопку Delete в модалке `DeleteJob.vue` от двойного клика — план: [`docs/plans/delete-double-click-plan.md`](delete-double-click-plan.md).
+
 ## Backlog
 
-1. [ ] Защитить кнопку Delete в модалке `app/components/jobs/DeleteJob.vue` от двойного клика: сейчас у неё нет `:loading`/`:disabled` по `deletePending`, и повторный клик запускает удаление повторно (найдено code review в `chore/fix-button-click-types`).
-2. [ ] Сделать так, чтобы предупреждения ESLint роняли `npm run lint` (например, `eslint . --max-warnings 0` в `package.json`): сейчас нарушения правил уровня `warn` (в том числе `vue/html-self-closing`) не блокируют pre-push проверки (найдено code review в `chore/prettier-format`).
+1. [ ] Сделать так, чтобы предупреждения ESLint роняли `npm run lint` (например, `eslint . --max-warnings 0` в `package.json`): сейчас нарушения правил уровня `warn` (в том числе `vue/html-self-closing`) не блокируют pre-push проверки (найдено code review в `chore/prettier-format`).
+2. [ ] Вынести `await router.push('/jobs')` из `try` удаления в `app/components/jobs/DeleteJob.vue`: если навигация упадёт (например, не загрузится чанк), после тоста «Application deleted» покажется тост ошибки, а пользователь останется на странице уже удалённой записи (найдено code review в `fix/delete-double-click`).
+3. [ ] Убрать стектрейс `ERR_PACKAGE_PATH_NOT_EXPORTED` (`vue-router/volar/sfc-route-blocks`) из вывода `npm run typecheck`: `nuxt typecheck` запускает `vue-tsc` через npx, и тот не находит плагин Volar в `vue-router`; код выхода 0, но шум может скрыть настоящие ошибки (например, добавить `vue-tsc` в devDependencies) (найдено в `fix/delete-double-click`).

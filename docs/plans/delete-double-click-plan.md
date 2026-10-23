@@ -43,10 +43,10 @@
 **Стоп:** да
 **Файлы:** Изменить: `app/components/jobs/DeleteJob.vue`
 
-- [ ] Добавить ранний выход `if (deletePending.value) return;` в начало `deleteJob` (предложение 1).
-- [ ] Добавить `:loading="deletePending"` кнопке Delete в футере модалки.
-- [ ] Добавить `:disabled="deletePending"` кнопке Cancel (предложение 2).
-- [ ] Добавить `:dismissible="!deletePending"` и `:close="!deletePending"` у `UModal` (предложение 3).
+- [x] Добавить ранний выход `if (deletePending.value) return;` в начало `deleteJob` (предложение 1).
+- [x] Добавить `:loading="deletePending"` кнопке Delete в футере модалки.
+- [x] Добавить `:disabled="deletePending"` кнопке Cancel (предложение 2).
+- [x] Добавить `:dismissible="!deletePending"` и `:close="!deletePending"` у `UModal` (предложение 3).
 
 ### Задача 2: Документация
 

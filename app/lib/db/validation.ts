@@ -26,10 +26,7 @@ export function requiredString(value: unknown, field: string): string {
   return trimmed;
 }
 
-export function optionalString(
-  value: unknown,
-  field: string,
-): string | null {
+export function optionalString(value: unknown, field: string): string | null {
   if (value === undefined || value === null || value === '') {
     return null;
   }

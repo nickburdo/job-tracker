@@ -81,10 +81,7 @@ async function refreshMeta() {
 await Promise.all([refresh(), refreshMeta()]);
 
 watch(listQuery, refresh);
-watch(
-  () => [selectedCompanyFilter.value, normalizedSearch.value],
-  refreshMeta,
-);
+watch(() => [selectedCompanyFilter.value, normalizedSearch.value], refreshMeta);
 
 const toast = useToast();
 const hasShownErrorToast = ref(false);

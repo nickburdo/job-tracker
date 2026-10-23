@@ -44,9 +44,7 @@ const readNestedValue = (
   }
 
   const payload = value as Record<string, unknown>;
-  const response = payload.response as
-    | { _data?: unknown }
-    | undefined;
+  const response = payload.response as { _data?: unknown } | undefined;
 
   for (const key of keys) {
     const nextValue = payload[key];

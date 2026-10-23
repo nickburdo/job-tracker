@@ -45,14 +45,16 @@ async function handleFileChange(event: Event) {
 
     toast.add({
       title: 'Import complete',
-      description: 'The local job applications were replaced with the imported file.',
+      description:
+        'The local job applications were replaced with the imported file.',
     });
 
     emit('imported');
   } catch (error) {
     toast.add({
       title: 'Import failed',
-      description: error instanceof Error ? error.message : 'Could not import the file',
+      description:
+        error instanceof Error ? error.message : 'Could not import the file',
       color: 'error',
     });
   } finally {
@@ -87,6 +89,6 @@ async function handleFileChange(event: Event) {
       accept="application/json"
       class="sr-only"
       @change="handleFileChange"
-    >
+    />
   </div>
 </template>

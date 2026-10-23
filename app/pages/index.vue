@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import type {
-  JobApplication,
-  JobMetaResponse,
-} from '~/utils/job-applications';
+import type { JobApplication, JobMetaResponse } from '~/utils/job-applications';
 import {
   getJobMeta,
   listJobApplications,

@@ -17,6 +17,10 @@
 
 1. Сделать PWA.
 
+## Фиксы
+
+1. [ ] Защитить кнопку Delete в модалке `DeleteJob.vue` от двойного клика — план: [`docs/plans/delete-double-click-plan.md`](delete-double-click-plan.md).
+
 ## Backlog
 
 1. [ ] Защитить кнопку Delete в модалке `app/components/jobs/DeleteJob.vue` от двойного клика: сейчас у неё нет `:loading`/`:disabled` по `deletePending`, и повторный клик запускает удаление повторно (найдено code review в `chore/fix-button-click-types`).

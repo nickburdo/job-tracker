@@ -30,6 +30,7 @@ Current stack:
 - Wrote project docs for implementation steps, status meanings, project structure, and this handoff summary.
 - Rewrote `README.md` so the repository is ready for GitHub.
 - Shared the `dev-workflow` Claude Code plugin through `.claude/settings.json` (config in `.claude/dev-workflow.md`) and gitignored `.claude/settings.local.json`.
+- Fixed the `UButton` `@click` handler return types in `app/components/jobs/DeleteJob.vue` and `app/pages/jobs/index.vue`; `npm run typecheck` now passes with no errors.
 
 ## Current State
 
@@ -74,6 +75,5 @@ Current stack:
 
 1. **Open question, not decided:** where to deploy the app now that it is a static, client-only bundle. The previous Render deployment served a server-rendered Nitro build (`start-preview.mjs`, now removed) and no longer applies. Candidates: Render as a static site, Cloudflare Pages, GitHub Pages, Netlify.
 2. Add test coverage for the repository layer and critical UI behavior.
-3. Fix the pre-existing `UButton` click-handler typecheck errors noted above.
-4. Decide whether status data should stay split between the frontend helper and the demo seed fixtures, or be moved behind a single source of truth.
-5. Polish any remaining UI details after manual review in the browser.
+3. Decide whether status data should stay split between the frontend helper and the demo seed fixtures, or be moved behind a single source of truth.
+4. Polish any remaining UI details after manual review in the browser.

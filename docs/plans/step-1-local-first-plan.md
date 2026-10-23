@@ -36,6 +36,7 @@
 ### Задача 1: Убрать `isDemo` из схемы Prisma (очистка источника истины)
 
 **Файлы:**
+
 - Изменить: `prisma/schema.prisma`
 
 - [ ] **Шаг 1: Убрать поле `isDemo` и индексы, привязанные только к серверной жизни, оставить форму данных**
@@ -111,6 +112,7 @@ git commit -m "Drop isDemo from the Prisma schema ahead of the local-first migra
 ### Задача 2: Установить Dexie
 
 **Файлы:**
+
 - Изменить: `package.json`
 
 - [ ] **Шаг 1: Установка**
@@ -134,9 +136,11 @@ git commit -m "Add Dexie for client-side IndexedDB storage"
 ### Задача 3: Создать базу Dexie
 
 **Файлы:**
+
 - Создать: `app/lib/db/schema.ts`
 
 **Интерфейсы:**
+
 - Использует: `JobApplication` (уже существует в `app/utils/job-applications.ts`, полностью совместим — в нём никогда не было `isDemo`).
 - Результат: `jobTrackerDb` (экземпляр `JobTrackerDatabase`) с таблицей `jobApplication` — используется репозиторием в Phase B, сидированием в Phase C и экспортом/импортом в Phase E.
 
@@ -178,10 +182,12 @@ git commit -m "Add the Dexie database mirroring the job application schema"
 ### Задача 4: Общие хелперы валидации и ошибка репозитория
 
 **Файлы:**
+
 - Создать: `app/lib/db/validation.ts`
 - Создать: `app/lib/db/errors.ts`
 
 **Интерфейсы:**
+
 - Результат: `parseOptionalNumber`, `parseOptionalString`, `RepositoryError` — используются репозиторием в Phase B.
 - Переиспользует: `jobValidationMessages`, `jobTextFieldLimits`, `normalizeVacancyUrl` из `shared/job-validation-messages.ts` (без изменений, эти хелперы уже framework-agnostic).
 
@@ -235,10 +241,7 @@ export function requiredString(value: unknown, field: string): string {
   return trimmed;
 }
 
-export function optionalString(
-  value: unknown,
-  field: string,
-): string | null {
+export function optionalString(value: unknown, field: string): string | null {
   if (value === undefined || value === null || value === '') {
     return null;
   }
@@ -306,9 +309,11 @@ git commit -m "Add repository validation helpers and RepositoryError"
 ### Задача 5: Репозиторий job applications
 
 **Файлы:**
+
 - Создать: `app/lib/db/repositories/jobApplicationRepository.ts`
 
 **Интерфейсы:**
+
 - Использует: `jobTrackerDb` (Задача 3), валидацию из Задачи 4, `JobApplication`/`JobApplicationsResponse`/`JobMetaResponse` (существующие типы из `app/utils/job-applications.ts`), `jobStatusOptions`/`interviewStatuses` (существующие из `app/utils/job-statuses.ts`).
 - Результат: `listJobApplications(query)`, `getJobApplication(id)`, `createJobApplication(payload)`, `updateJobApplication(id, payload)`, `deleteJobApplication(id)`, `getJobMeta(query)` — используются дашбордом, страницей списка, формой, детальной страницей и экспортом/импортом (Phase E).
 - Повторяет бизнес-правила текущих `server/utils/job-api.ts` и `server/utils/jobs.ts`: обязательные поля, лимиты длины текста, `salaryMin <= salaryMax`, уникальность `vacancyUrl` (после `normalizeVacancyUrl`), группировка `INTERVIEWS` = `SCREENING`+`TECHNICAL_INTERVIEW`+`FINAL_INTERVIEW` — без `isDemo`/`actor`.
@@ -413,9 +418,11 @@ async function ensureVacancyUrlIsUnique(
 export async function listJobApplications(
   query: JobQuery = {},
 ): Promise<JobApplicationsResponse> {
-  if (query.status && query.status !== 'INTERVIEWS' && !knownStatuses.has(
-    query.status as JobApplicationStatus,
-  )) {
+  if (
+    query.status &&
+    query.status !== 'INTERVIEWS' &&
+    !knownStatuses.has(query.status as JobApplicationStatus)
+  ) {
     throw new RepositoryError('Status is invalid');
   }
 
@@ -496,9 +503,8 @@ function parseJobPayload(payload: Record<string, unknown>) {
   }
 
   const status =
-    typeof payload.status === 'string' && knownStatuses.has(
-      payload.status as JobApplicationStatus,
-    )
+    typeof payload.status === 'string' &&
+    knownStatuses.has(payload.status as JobApplicationStatus)
       ? (payload.status as JobApplicationStatus)
       : 'SAVED';
 
@@ -590,11 +596,13 @@ git commit -m "Add the local job application repository"
 ### Задача 6: Сгенерировать статичный демо-набор данных из `prisma/seed.ts`
 
 **Файлы:**
+
 - Создать: `scripts/generate-demo-data.mjs`
 - Создать: `public/data/demo.json`
 - Изменить: `package.json` (добавить скрипт `demo:generate`)
 
 **Интерфейсы:**
+
 - Результат: `public/data/demo.json` в форме `{ jobApplications: Array<{ daysAgo?: number, daysFromNow?: number, ...остальные поля JobApplication без id/status-дат-как-Date/createdAt/updatedAt }> }` — используется `app/lib/db/seed.ts` (Задача 7).
 
 Это те же 16 фикстур, что и сегодняшний `prisma/seed.ts`, только `daysAgo(N)`/`daysFromNow(N)` (вызовы, дающие `Date` в момент запуска сида) заменены на плоские поля `daysAgo`/`daysFromNow` (числа), которые превращаются в реальные даты в момент заполнения браузера, а не в момент генерации файла.
@@ -886,10 +894,12 @@ git commit -m "Add the static demo dataset and its generator script"
 ### Задача 7: Заполнить пустую базу из демо-набора
 
 **Файлы:**
+
 - Создать: `app/lib/db/seed.ts`
 - Создать: `app/plugins/seed-demo-data.client.ts`
 
 **Интерфейсы:**
+
 - Использует: `jobTrackerDb` (Задача 3), `public/data/demo.json` (Задача 6).
 - Результат: `seedDemoDataIfEmpty()`, вызывается один раз при старте приложения плагином.
 
@@ -1005,6 +1015,7 @@ git commit -m "Seed the local database from the demo dataset on first run"
 ### Задача 8: Сделать приложение только клиентским, убрать модуль Supabase
 
 **Файлы:**
+
 - Изменить: `nuxt.config.ts`
 
 - [ ] **Шаг 1: Обновить конфиг**
@@ -1062,6 +1073,7 @@ git commit -m "Run the app client-only; drop the Supabase module wiring"
 ### Задача 9: Убрать UI авторизации
 
 **Файлы:**
+
 - Изменить: `app/layouts/default.vue`
 - Удалить: `app/components/auth/Login.vue`
 - Удалить: `app/components/auth/Logout.vue`
@@ -1069,6 +1081,7 @@ git commit -m "Run the app client-only; drop the Supabase module wiring"
 - Удалить: `app/plugins/auth-refresh.client.ts`
 
 **Интерфейсы:**
+
 - Результат: шапка приложения показывает только логотип (без скрытой формы логина) и основную навигацию — никакого состояния входа нигде во фронтенде.
 
 - [ ] **Шаг 1: Удалить файлы авторизации**
@@ -1111,9 +1124,7 @@ git rm app/components/auth/Login.vue app/components/auth/Logout.vue app/pages/au
     >
       JT
     </span>
-    <span class="text-sm font-semibold text-highlighted">
-      Job Tracker
-    </span>
+    <span class="text-sm font-semibold text-highlighted"> Job Tracker </span>
   </NuxtLink>
 
   <div class="hidden md:block">
@@ -1147,9 +1158,11 @@ git commit -m "Remove the auth UI; the app has no login anymore"
 ### Задача 10: Подключить список заявок (`/jobs`) к репозиторию
 
 **Файлы:**
+
 - Изменить: `app/pages/jobs/index.vue`
 
 **Интерфейсы:**
+
 - Использует: `listJobApplications`, `getJobMeta` (Задача 5).
 - `JobsStatusCards.vue` и `JobsListFilters.vue` не меняются — они уже принимают `jobMeta` как проп и ничего не знают о транспорте данных.
 
@@ -1257,9 +1270,11 @@ git commit -m "Wire the jobs list page to the local repository"
 ### Задача 11: Подключить дашборд (`/`) к репозиторию
 
 **Файлы:**
+
 - Изменить: `app/pages/index.vue`
 
 **Интерфейсы:**
+
 - Использует: `listJobApplications`, `getJobMeta` (Задача 5). `DashboardOverview.vue`, `DashboardFollowUpQueue.vue`, `DashboardRecentApplications.vue`, `DashboardStatusSummary.vue` не меняются — они принимают `jobs`/`stats` как props.
 
 - [ ] **Шаг 1: Заменить блок загрузки данных**
@@ -1363,12 +1378,14 @@ git commit -m "Wire the dashboard to the local repository"
 ### Задача 12: Подключить создание, редактирование, детальную страницу и удаление
 
 **Файлы:**
+
 - Изменить: `app/pages/jobs/new.vue`
 - Изменить: `app/pages/jobs/[id]/edit.vue`
 - Изменить: `app/pages/jobs/[id]/index.vue`
 - Изменить: `app/components/jobs/DeleteJob.vue`
 
 **Интерфейсы:**
+
 - Использует: `createJobApplication`, `updateJobApplication`, `getJobApplication`, `deleteJobApplication` (Задача 5).
 - `JobsJobForm.vue` не меняется — он уже только формирует значение и эмитит `submit`/`clear-server-error`, ничего не зная о транспорте.
 - `handleApiFormError`/`extractApiFormFieldErrors` (`app/utils/form-errors.ts`) не меняются — благодаря открытому предложению №7 (`RepositoryError.data.fieldErrors`) они продолжают работать без изменений.
@@ -1457,7 +1474,10 @@ const { data: job, error } = await useFetch<JobApplication>(
 На:
 
 ```typescript
-import { getJobApplication, updateJobApplication } from '~/lib/db/repositories/jobApplicationRepository';
+import {
+  getJobApplication,
+  updateJobApplication,
+} from '~/lib/db/repositories/jobApplicationRepository';
 
 const job = ref<JobApplication>();
 const error = ref<Error | null>(null);
@@ -1508,7 +1528,10 @@ const updateJob = async (value: Record<string, unknown>) => {
 Заменить блок загрузки и `updateStatus`:
 
 ```typescript
-import { getJobApplication, updateJobApplication } from '~/lib/db/repositories/jobApplicationRepository';
+import {
+  getJobApplication,
+  updateJobApplication,
+} from '~/lib/db/repositories/jobApplicationRepository';
 
 const job = ref<JobApplication>();
 const error = ref<Error | null>(null);
@@ -1620,11 +1643,13 @@ git commit -m "Wire create, edit, detail, and delete flows to the local reposito
 ### Задача 13: Экспорт/импорт JSON на странице `/jobs`
 
 **Файлы:**
+
 - Создать: `app/lib/db/export-import.ts`
 - Создать: `app/components/jobs/DataActions.vue`
 - Изменить: `app/pages/jobs/index.vue`
 
 **Интерфейсы:**
+
 - Использует: `jobTrackerDb` (Задача 3).
 - Результат: `exportJobApplicationsData()`, `downloadJobApplicationsExport()`, `importJobApplicationsData(file)` — используются только `JobsDataActions.vue`.
 
@@ -1737,14 +1762,16 @@ async function handleFileChange(event: Event) {
 
     toast.add({
       title: 'Import complete',
-      description: 'The local job applications were replaced with the imported file.',
+      description:
+        'The local job applications were replaced with the imported file.',
     });
 
     emit('imported');
   } catch (error) {
     toast.add({
       title: 'Import failed',
-      description: error instanceof Error ? error.message : 'Could not import the file',
+      description:
+        error instanceof Error ? error.message : 'Could not import the file',
       color: 'error',
     });
   } finally {
@@ -1779,7 +1806,7 @@ async function handleFileChange(event: Event) {
       accept="application/json"
       class="sr-only"
       @change="handleFileChange"
-    >
+    />
   </div>
 </template>
 ```
@@ -1789,9 +1816,7 @@ async function handleFileChange(event: Event) {
 В `app/pages/jobs/index.vue`, в блок заголовка страницы (рядом с "Applications"/описанием), добавить:
 
 ```html
-<div
-  class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
->
+<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
   <div>
     <h1 class="text-2xl font-semibold tracking-tight text-highlighted">
       Applications
@@ -1870,6 +1895,7 @@ git commit -m "Add JSON export/import for job applications on the jobs page"
 ### Задача 15: Удалить серверный API и серверные утилиты
 
 **Файлы:**
+
 - Удалить: `server/api/` (весь каталог)
 - Удалить: `server/utils/prisma.ts`, `server/utils/job-api.ts`, `server/utils/jobs.ts`, `server/utils/auth.ts`
 - Удалить: `test/server-api.test.ts`
@@ -1898,6 +1924,7 @@ git commit -m "Remove the server API and server-side data/auth utilities"
 ### Задача 16: Убрать зависимости бэкенда, скрипты и тулчейн Prisma
 
 **Файлы:**
+
 - Изменить: `package.json`
 - Удалить: `prisma/seed.ts`, `prisma.config.ts`, `generated/prisma`
 - Оставить: `prisma/schema.prisma` (в урезанном виде, только как документация — уже сделано в Задаче 1)
@@ -1957,6 +1984,7 @@ git commit -m "Remove Supabase, Prisma runtime toolchain, and the Render start s
 ### Задача 17: Убрать устаревшие документы и очистить `.env`
 
 **Файлы:**
+
 - Удалить: `docs/auth-plan.md`, `docs/auth-summary.md`, `docs/db-change-plan.md`, `docs/deploy.md`
 
 - [ ] **Шаг 1: Удалить устаревшие документы**
@@ -1987,6 +2015,7 @@ git commit -m "Remove stale Supabase/Prisma/Render docs"
 ### Задача 18: Обновить документ передачи проекта и решить вопрос деплоя, финальная проверка
 
 **Файлы:**
+
 - Изменить: `docs/project-state.md`
 
 - [ ] **Шаг 1: Обновить разделы «Important Decisions» и «Current State»**

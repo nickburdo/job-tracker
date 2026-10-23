@@ -53,8 +53,8 @@
 **Файлы:** Изменить: `docs/plans/next-update.md`, `docs/project-state.md`
 **Почему:** бэклог и сводка состояния проекта должны отражать, что баг с двойным кликом исправлен.
 
-- [ ] Удалить пункт бэклога 1 «Защитить кнопку Delete в модалке `app/components/jobs/DeleteJob.vue` от двойного клика» в `docs/plans/next-update.md` (оставшийся пункт перенумеровать).
-- [ ] Добавить в `docs/project-state.md` (раздел «Completed Work») строку об исправлении.
+- [x] Удалить пункт бэклога 1 «Защитить кнопку Delete в модалке `app/components/jobs/DeleteJob.vue` от двойного клика» в `docs/plans/next-update.md` (оставшийся пункт перенумеровать).
+- [x] Добавить в `docs/project-state.md` (раздел «Completed Work») строку об исправлении.
 
 ### Задача 3: Проверка и завершение
 

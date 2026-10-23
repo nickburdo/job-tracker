@@ -23,5 +23,4 @@
 
 ## Backlog
 
-1. [ ] Защитить кнопку Delete в модалке `app/components/jobs/DeleteJob.vue` от двойного клика: сейчас у неё нет `:loading`/`:disabled` по `deletePending`, и повторный клик запускает удаление повторно (найдено code review в `chore/fix-button-click-types`).
-2. [ ] Сделать так, чтобы предупреждения ESLint роняли `npm run lint` (например, `eslint . --max-warnings 0` в `package.json`): сейчас нарушения правил уровня `warn` (в том числе `vue/html-self-closing`) не блокируют pre-push проверки (найдено code review в `chore/prettier-format`).
+1. [ ] Сделать так, чтобы предупреждения ESLint роняли `npm run lint` (например, `eslint . --max-warnings 0` в `package.json`): сейчас нарушения правил уровня `warn` (в том числе `vue/html-self-closing`) не блокируют pre-push проверки (найдено code review в `chore/prettier-format`).

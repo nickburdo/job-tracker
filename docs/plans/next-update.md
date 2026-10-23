@@ -19,5 +19,4 @@
 
 ## Backlog
 
-1. [ ] Отформатировать Prettier'ом 7 файлов, не проходящих `npm run format:check`: `app/components/jobs/DataActions.vue`, `app/constants/jobs-filter.ts`, `app/lib/db/validation.ts`, `app/pages/index.vue`, `app/pages/jobs/index.vue`, `app/utils/form-errors.ts`, `docs/plans/step-1-local-first-plan.md`. Делать после установки плагина — заодно проверить на этой задаче плагин.
-2. [ ] Защитить кнопку Delete в модалке `app/components/jobs/DeleteJob.vue` от двойного клика: сейчас у неё нет `:loading`/`:disabled` по `deletePending`, и повторный клик запускает удаление повторно (найдено code review в `chore/fix-button-click-types`).
+1. [ ] Защитить кнопку Delete в модалке `app/components/jobs/DeleteJob.vue` от двойного клика: сейчас у неё нет `:loading`/`:disabled` по `deletePending`, и повторный клик запускает удаление повторно (найдено code review в `chore/fix-button-click-types`).

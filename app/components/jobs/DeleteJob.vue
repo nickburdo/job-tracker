@@ -10,6 +10,10 @@ const props = defineProps<{
 const open = ref(false);
 const deletePending = ref(false);
 
+const closeModal = () => {
+  open.value = false;
+};
+
 const deleteJob = async () => {
   deletePending.value = true;
 
@@ -43,7 +47,7 @@ const deleteJob = async () => {
 
     <template #footer>
       <div class="flex gap-2">
-        <UButton color="neutral" label="Cancel" @click="open = false" />
+        <UButton color="neutral" label="Cancel" @click="closeModal" />
         <UButton color="error" label="Delete" @click="deleteJob" />
       </div>
     </template>

@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "nickburdo-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "nickburdo/claude-plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "dev-workflow@nickburdo-plugins": true
+  }
+}

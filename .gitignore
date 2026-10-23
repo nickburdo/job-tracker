@@ -24,3 +24,6 @@ logs
 .DS_Store
 .fleet
 .idea
+
+# Claude Code personal settings
+.claude/settings.local.json

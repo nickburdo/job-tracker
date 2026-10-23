@@ -140,11 +140,21 @@ watch(totalPages, () => {
   }
 });
 
+const prevPage = () => {
+  page.value -= 1;
+};
+
+const nextPage = () => {
+  page.value += 1;
+};
+
 const loading = computed(
   () => pending.value || (!jobPage.value && metaPending.value),
 );
 
-const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
+const refreshAll = async () => {
+  await Promise.all([refresh(), refreshMeta()]);
+};
 </script>
 
 <template>
@@ -293,7 +303,7 @@ const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
               variant="outline"
               icon="i-lucide-chevron-left"
               :disabled="page === 1 || totalItems === 0"
-              @click="page -= 1"
+              @click="prevPage"
             >
               Prev
             </UButton>
@@ -306,7 +316,7 @@ const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
               icon="i-lucide-chevron-right"
               :trailing="true"
               :disabled="page >= totalPages || totalItems === 0"
-              @click="page += 1"
+              @click="nextPage"
             >
               Next
             </UButton>
@@ -319,7 +329,7 @@ const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
           color="neutral"
           variant="ghost"
           icon="i-lucide-refresh-cw"
-          @click="refreshAll()"
+          @click="refreshAll"
         >
           Retry load
         </UButton>

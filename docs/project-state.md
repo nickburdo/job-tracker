@@ -29,6 +29,7 @@ Current stack:
 - Added JSON export/import for the whole job applications table on the `/jobs` page.
 - Wrote project docs for implementation steps, status meanings, project structure, and this handoff summary.
 - Rewrote `README.md` so the repository is ready for GitHub.
+- Shared the `dev-workflow` Claude Code plugin through `.claude/settings.json` (config in `.claude/dev-workflow.md`) and gitignored `.claude/settings.local.json`.
 
 ## Current State
 

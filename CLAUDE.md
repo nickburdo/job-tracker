@@ -15,6 +15,8 @@ npm run format:check   # Prettier (format to write)
 npm run demo:generate  # regenerate public/data/demo.json from scripts/generate-demo-data.mjs
 ```
 
+The `dev-workflow` Claude Code plugin is enabled in `.claude/settings.json` (its config is `.claude/dev-workflow.md`); in a fresh clone, install it once with `claude plugin install dev-workflow@nickburdo-plugins --scope project`. `.claude/settings.local.json` holds personal settings and is gitignored.
+
 There is no automated test suite; the pre-push checks are `format:check`, `lint`, `typecheck`, `build`. `typecheck` has known pre-existing errors in `UButton` `@click` handlers (`app/components/jobs/DeleteJob.vue`, `app/pages/jobs/index.vue`).
 
 ## Architecture

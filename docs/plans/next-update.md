@@ -16,3 +16,8 @@
 ## Step 2 (идея на будущее, не запланировано)
 
 1. Сделать PWA.
+
+## Backlog
+
+1. [ ] Отформатировать Prettier'ом 7 файлов, не проходящих `npm run format:check`: `app/components/jobs/DataActions.vue`, `app/constants/jobs-filter.ts`, `app/lib/db/validation.ts`, `app/pages/index.vue`, `app/pages/jobs/index.vue`, `app/utils/form-errors.ts`, `docs/plans/step-1-local-first-plan.md`. Делать после установки плагина — заодно проверить на этой задаче плагин.
+2. [ ] Исправить 4 ошибки `npm run typecheck` в обработчиках `UButton @click` (возвращают значение вместо `void`): `app/components/jobs/DeleteJob.vue`, `app/pages/jobs/index.vue`.

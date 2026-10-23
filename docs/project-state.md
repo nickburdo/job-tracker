@@ -32,7 +32,7 @@ Current stack:
 - Shared the `dev-workflow` Claude Code plugin through `.claude/settings.json` (config in `.claude/dev-workflow.md`) and gitignored `.claude/settings.local.json`.
 - Fixed the `UButton` `@click` handler return types in `app/components/jobs/DeleteJob.vue` and `app/pages/jobs/index.vue`; `npm run typecheck` now passes with no errors.
 - Aligned ESLint `vue/html-self-closing` with Prettier: void elements must be self-closed (`html.void: 'always'` in `eslint.config.mjs`).
-- Formatted the app source files that failed `npm run format:check` with Prettier (formatting only, no logic changes).
+- Formatted the app source files that failed `npm run format:check` and `docs/plans/step-1-local-first-plan.md` with Prettier (formatting only, no logic changes); `npm run format:check` now passes.
 
 ## Current State
 

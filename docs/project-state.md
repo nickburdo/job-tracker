@@ -69,7 +69,6 @@ Current stack:
     These do not fail the build.
 - Status changes still require coordination between the frontend status helper (`app/utils/job-statuses.ts`) and the demo seed fixtures (`scripts/generate-demo-data.mjs`).
 - The app currently has no automated test suite beyond format/lint/build checks (the previous `test/server-api.test.ts` was removed along with the server API it exercised).
-- The Retry load `UButton`/`@click` handler in `app/pages/jobs/index.vue` has a pre-existing `npm run typecheck` errors (event handler return type mismatches) that predate the local-first migration and were left as-is rather than folded into it.
 
 ## Next Steps
 

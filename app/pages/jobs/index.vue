@@ -152,7 +152,9 @@ const loading = computed(
   () => pending.value || (!jobPage.value && metaPending.value),
 );
 
-const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
+const refreshAll = async () => {
+  await Promise.all([refresh(), refreshMeta()]);
+};
 </script>
 
 <template>
@@ -327,7 +329,7 @@ const refreshAll = () => Promise.all([refresh(), refreshMeta()]);
           color="neutral"
           variant="ghost"
           icon="i-lucide-refresh-cw"
-          @click="refreshAll()"
+          @click="refreshAll"
         >
           Retry load
         </UButton>
